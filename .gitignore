@@ -8,3 +8,6 @@ release/*
 # Never commit a local payload profile. The whole sanitization design depends on this.
 profile.json
 *.profile.json
+
+# TypeScript incremental build artifacts
+*.tsbuildinfo

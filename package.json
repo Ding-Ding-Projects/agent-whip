@@ -4,8 +4,12 @@
   "private": true,
   "description": "Crack a whip at a running AI coding agent session and it switches into a faster operating mode. A mode switch, not an interrupt.",
   "license": "MIT",
-  "workspaces": ["packages/*"],
-  "engines": { "node": ">=20" },
+  "workspaces": [
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "build": "npm run build --workspaces --if-present",
     "typecheck": "tsc -b packages/paste-frame packages/core packages/cli",
@@ -14,5 +18,8 @@
     "check:no-payload-logging": "node scripts/check-no-payload-logging.mjs",
     "check:public-hygiene": "node scripts/check-public-hygiene.mjs",
     "check": "npm run check:no-network && npm run check:no-payload-logging && npm run check:public-hygiene"
+  },
+  "devDependencies": {
+    "@types/node": "^26.2.0"
   }
 }

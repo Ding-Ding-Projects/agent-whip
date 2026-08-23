@@ -7,8 +7,17 @@
     "declaration": true,
     "composite": true,
     "outDir": "dist",
-    "rootDir": "src"
+    "rootDir": "src",
+    "types": [
+      "node"
+    ]
   },
-  "include": ["src/**/*.ts"],
-  "references": [{ "path": "../paste-frame" }]
+  "include": [
+    "src/**/*.ts"
+  ],
+  "references": [
+    {
+      "path": "../paste-frame"
+    }
+  ]
 }

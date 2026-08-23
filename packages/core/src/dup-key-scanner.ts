@@ -33,7 +33,7 @@ export function hasDuplicateKey(text: string): boolean {
     let out = '';
     while (i < n) {
       const c = text[i]!;
-      if (c === '\') {
+      if (c === "\\") {
         const esc = text[i + 1];
         if (esc === undefined) return null;
         if (esc === 'u') {

@@ -1,8 +1,8 @@
 # agent-whip
 
-![CI](https://img.shields.io/github/actions/workflow/status/agent-whip/agent-whip/ci.yml?branch=main&label=CI)
-![Release](https://img.shields.io/github/actions/workflow/status/agent-whip/agent-whip/release.yml?label=release)
-![License](https://img.shields.io/github/license/agent-whip/agent-whip)
+![CI](https://img.shields.io/github/actions/workflow/status/Ding-Ding-Projects/agent-whip/ci.yml?branch=main&label=CI)
+![Release](https://img.shields.io/github/actions/workflow/status/Ding-Ding-Projects/agent-whip/release.yml?label=release)
+![License](https://img.shields.io/github/license/Ding-Ding-Projects/agent-whip)
 ![Node](https://img.shields.io/badge/node-%3E%3D20-green)
 
 Crack a whip at a running AI coding agent session and it switches into a
@@ -19,7 +19,8 @@ faster operating mode.
 ```
 npm install -g agent-whip
 agent-whip crack           # tier 1: speed mode
-agent-whip crack --double  # tier 2: speed mode + cleanup authorization
+agent-whip crack           # crack again within ~2s for tier 2
+agent-whip crack --tier 2  # or force tier 2 outright
 ```
 
 > [!NOTE]
@@ -153,7 +154,7 @@ npm install -g agent-whip
 For now, clone and build from source:
 
 ```
-git clone https://github.com/agent-whip/agent-whip.git
+git clone https://github.com/Ding-Ding-Projects/agent-whip.git
 cd agent-whip
 npm install
 npm run build

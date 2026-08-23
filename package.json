@@ -21,9 +21,11 @@
     "check:no-network": "node scripts/check-no-network.mjs",
     "check:no-payload-logging": "node scripts/check-no-payload-logging.mjs",
     "check:public-hygiene": "node scripts/check-public-hygiene.mjs",
-    "check": "npm run check:no-network && npm run check:no-payload-logging && npm run check:public-hygiene && npm run check:reserved-terms",
+    "check": "npm run check:no-network && npm run check:no-payload-logging && npm run check:public-hygiene && npm run check:reserved-terms && npm run check:documented-commands",
     "check:reserved-terms": "node scripts/check-reserved-terms.mjs",
-    "reserved:lock": "node scripts/make-reserved-lock.mjs"
+    "reserved:lock": "node scripts/make-reserved-lock.mjs",
+    "dist:win": "electron-builder --win squirrel --config electron-builder.yml",
+    "check:documented-commands": "node scripts/check-documented-commands.mjs"
   },
   "dependencies": {
     "@agent-whip/core": "0.1.0",
@@ -34,6 +36,14 @@
     "electron": "^43.3.0",
     "esbuild": "^0.28.1",
     "typescript": "^5.9.3",
-    "vite": "^7.3.6"
+    "vite": "^7.3.6",
+    "electron-builder": "^26.15.3",
+    "electron-builder-squirrel-windows": "^26.15.3"
+  },
+  "author": "agent-whip contributors",
+  "allowScripts": {
+    "electron-winstaller@5.4.0": true,
+    "esbuild@0.28.2": true,
+    "electron@43.4.1": true
   }
 }

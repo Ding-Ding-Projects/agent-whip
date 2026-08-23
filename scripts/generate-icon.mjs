@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
 const SIZE = 32;
+const ICO_SIZES = [16, 24, 32, 48, 64, 128, 256];
 
 // -- tiny from-scratch PNG encoder --------------------------------------------------------------
 const CRC_TABLE = (() => {
@@ -58,44 +59,45 @@ function encodePng(width, height, rgba) {
 }
 
 // -- pixel content: an M3 primary-container disc with a white whip-curve sweep -------------------
-function setPixel(rgba, x, y, r, g, b, a) {
-  if (x < 0 || x >= SIZE || y < 0 || y >= SIZE) return;
-  const i = (y * SIZE + x) * 4;
+function setPixel(rgba, size, x, y, r, g, b, a) {
+  if (x < 0 || x >= size || y < 0 || y >= size) return;
+  const i = (y * size + x) * 4;
   rgba[i] = r;
   rgba[i + 1] = g;
   rgba[i + 2] = b;
   rgba[i + 3] = a;
 }
 
-function draw() {
-  const rgba = Buffer.alloc(SIZE * SIZE * 4);
-  const cx = SIZE / 2;
-  const cy = SIZE / 2;
-  const radius = SIZE / 2 - 1;
+function draw(size) {
+  const rgba = Buffer.alloc(size * size * 4);
+  const cx = size / 2;
+  const cy = size / 2;
+  const radius = size / 2 - 1;
 
   // M3-ish seed purple disc (#6750a4), transparent outside the circle.
-  for (let y = 0; y < SIZE; y++) {
-    for (let x = 0; x < SIZE; x++) {
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
       const dx = x + 0.5 - cx;
       const dy = y + 0.5 - cy;
       const inside = dx * dx + dy * dy <= radius * radius;
-      setPixel(rgba, x, y, 0x67, 0x50, 0xa4, inside ? 255 : 0);
+      setPixel(rgba, size, x, y, 0x67, 0x50, 0xa4, inside ? 255 : 0);
     }
   }
 
   // The whip: a decaying sine sweep from upper-left "handle" to a "cracking" tip, drawn as a thick
-  // white stroke by rasterizing many sample points along the curve.
+  // white stroke by rasterizing many sample points along the curve, scaled to this icon size.
+  const scale = size / SIZE;
   const steps = 200;
   for (let s = 0; s <= steps; s++) {
     const t = s / steps;
-    const x = 6 + t * 20;
+    const x = (6 + t * 20) * scale;
     const decay = 1 - t;
-    const y = 8 + t * 16 + Math.sin(t * Math.PI * 3.2) * 5 * decay;
-    const thickness = 1.6 * (1 - 0.6 * t) + 0.4;
+    const y = (8 + t * 16 + Math.sin(t * Math.PI * 3.2) * 5 * decay) * scale;
+    const thickness = (1.6 * (1 - 0.6 * t) + 0.4) * scale;
     for (let ox = -thickness; ox <= thickness; ox++) {
       for (let oy = -thickness; oy <= thickness; oy++) {
         if (ox * ox + oy * oy <= thickness * thickness) {
-          setPixel(rgba, Math.round(x + ox), Math.round(y + oy), 0xff, 0xff, 0xff, 255);
+          setPixel(rgba, size, Math.round(x + ox), Math.round(y + oy), 0xff, 0xff, 0xff, 255);
         }
       }
     }
@@ -104,12 +106,52 @@ function draw() {
   return rgba;
 }
 
+// -- ICO container: a genuine multi-resolution icon, each entry a PNG-compressed image (the
+// Vista+ PNG-in-ICO format), never a single renamed PNG passed off as an icon. -------------------
+function encodeIco(entries) {
+  const count = entries.length;
+  const header = Buffer.alloc(6);
+  header.writeUInt16LE(0, 0); // reserved
+  header.writeUInt16LE(1, 2); // type: icon
+  header.writeUInt16LE(count, 4);
+
+  const dir = Buffer.alloc(16 * count);
+  let offset = 6 + 16 * count;
+  const chunks = [header];
+  for (let i = 0; i < count; i++) {
+    const { size, png } = entries[i];
+    const dirOff = i * 16;
+    dir[dirOff] = size >= 256 ? 0 : size; // width, 0 means 256
+    dir[dirOff + 1] = size >= 256 ? 0 : size; // height, 0 means 256
+    dir[dirOff + 2] = 0; // color palette
+    dir[dirOff + 3] = 0; // reserved
+    dir.writeUInt16LE(1, dirOff + 4); // color planes
+    dir.writeUInt16LE(32, dirOff + 6); // bits per pixel
+    dir.writeUInt32LE(png.length, dirOff + 8);
+    dir.writeUInt32LE(offset, dirOff + 12);
+    offset += png.length;
+  }
+  chunks.push(dir, ...entries.map((e) => e.png));
+  return Buffer.concat(chunks);
+}
+
 function main() {
-  const png = encodePng(SIZE, SIZE, draw());
   const here = dirname(fileURLToPath(import.meta.url));
-  const outPath = join(here, '..', 'assets', 'icon.png');
-  writeFileSync(outPath, png);
-  console.log(`wrote ${outPath} (${png.length} bytes)`);
+  const assetsDir = join(here, '..', 'assets');
+
+  // electron-builder wants at least a 256x256 PNG icon (32x32 renders wrong in the installer,
+  // taskbar, and Add/Remove Programs list), so the standalone PNG is generated at full size.
+  const PNG_SIZE = 256;
+  const basePng = encodePng(PNG_SIZE, PNG_SIZE, draw(PNG_SIZE));
+  const iconPngPath = join(assetsDir, 'icon.png');
+  writeFileSync(iconPngPath, basePng);
+  console.log(`wrote ${iconPngPath} (${basePng.length} bytes, ${PNG_SIZE}x${PNG_SIZE})`);
+
+  const entries = ICO_SIZES.map((size) => ({ size, png: encodePng(size, size, draw(size)) }));
+  const ico = encodeIco(entries);
+  const icoPath = join(assetsDir, 'icon.ico');
+  writeFileSync(icoPath, ico);
+  console.log(`wrote ${icoPath} (${ico.length} bytes, sizes: ${ICO_SIZES.join(', ')})`);
 }
 
 main();

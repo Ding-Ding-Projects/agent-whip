@@ -1,0 +1,46 @@
+# electron-builder configuration for agent-whip.
+#
+# Code signing is permanently prohibited on this project. Every signing input is explicitly
+# cleared below and every setup executable this config produces is verified unsigned (see
+# build-installer.bat). Never add a certificate, a signing identity, or a signer invocation here.
+appId: dev.agentwhip.app
+productName: agent-whip
+copyright: Copyright (c) agent-whip contributors
+directories:
+  output: dist/installer
+  buildResources: assets
+files:
+  - dist/main/**/*.js
+  - '!dist/main/**/*.test.js'
+  - dist/preload/**/*.cjs
+  - dist/preload/**/*.js
+  - dist/shared/**/*.js
+  - dist/renderer/**/*
+  - index.html
+  - popover.html
+  - settings.html
+  - package.json
+  - node_modules/**/*
+extraMetadata:
+  main: dist/main/index.js
+win:
+  target:
+    - target: squirrel
+      arch:
+        - x64
+  icon: assets/icon.ico
+  # Permanent no-signing policy: never set these to anything other than false, never reference a
+  # certificate, and never invoke a signer.
+  forceCodeSigning: false
+  signExecutable: false
+  signAndEditExecutable: false
+squirrelWindows:
+  # Legacy `setupExe`/`noMsi` keys fail schema validation on electron-builder-squirrel-windows
+  # 26.x — do not reintroduce them. `msi: false` skips the optional MSI wrapper; the Squirrel
+  # Setup.exe/RELEASES/.nupkg set is what actually ships.
+  msi: false
+  artifactName: '${productName}-Setup-${version}.${ext}'
+  iconUrl: https://raw.githubusercontent.com/Ding-Ding-Projects/agent-whip/main/assets/icon.ico
+electronDownload:
+  cache: node_modules/.cache/electron
+npmRebuild: false

@@ -2,64 +2,130 @@
 
 ## Current state (2026-08-22)
 
-This is a brand-new public repository. The scaffold below was assembled by
-several agents working in parallel over disjoint ownership lanes:
+Six implementation lanes have landed against this scaffold, plus this
+packaging lane (the last one). Nothing has been merged/rewritten out from
+under another lane's ownership; this document reports what was verified,
+not what was asserted.
 
-- **Root files, workflows, scripts, docs** (this handoff's author): `README.md`,
-  `ROADMAP.md`, `HANDOFF.md`, `LICENSE`, `SECURITY.md`, `CONTRIBUTING.md`,
-  `CODE_OF_CONDUCT.md`, `AGENTS.md`, `.github/workflows/{ci,release,pages}.yml`,
-  `scripts/check-*.mjs` + `scripts/lib/walk-source.mjs`, `docs/` (index +
-  four feature articles).
-- **`packages/`, `src/`, `site/`**: owned by other agents in this same pass;
-  not touched here. At the time of writing, `packages/core/src` had
-  `constants.ts` and `dup-key-scanner.ts`, `packages/paste-frame/src` had
-  `index.ts`, and `packages/delivery` had only its manifest files — none of
-  that was inspected in depth or modified by this lane.
+## Verified test and guard counts
 
-## What was verified in this pass
+- **Type-checking**: `npx tsc -b packages/paste-frame packages/core
+  packages/delivery packages/cli` exits 0.
+- **Workspace package tests**: `node --test packages/*/dist/**/*.test.js` —
+  **128 tests, 128 pass, 0 fail**.
+- **`src/main` tests**: `node --test --experimental-strip-types
+  src/main/*.test.ts` currently **fails to run** (`redact.test.ts` and
+  `settings-store.test.ts`, 2 test files / a further several `test()` blocks
+  each — not run to completion, so no pass count from these two files can be
+  claimed). The cause is a module-resolution mismatch: these test files
+  import their subject with a `.js` extension (`from './redact.js'`) as
+  written source next to `.ts` siblings, and without `"type": "module"` in
+  the root `package.json`, Node's ESM resolver (even under
+  `--experimental-strip-types`) does not remap that `.js` specifier onto the
+  sibling `.ts` file, so it throws `ERR_MODULE_NOT_FOUND`. This reproduces
+  identically before and after a full `npm run build` — it is not a stale-
+  build problem. It is **not fixed in this pass**: `src/main` is owned by the
+  Electron/tray lane, not by packaging, and the fix (almost certainly adding
+  `"type": "module"` to the root manifest, or having the test files import
+  compiled `dist/main/*.js` instead of sibling source) touches shared root
+  configuration and/or that lane's test files, so it is left as a named,
+  reproducible defect rather than silently worked around here.
+- **Guards**: `npm run check` — **five guards, all pass**:
+  `check-no-network`, `check-no-payload-logging`, `check-public-hygiene`,
+  `check-reserved-terms` (114 files scanned, 54 digests enforced),
+  `check-documented-commands` (2 documented commands, all parse).
 
-- All three guard scripts (`check-no-network`, `check-no-payload-logging`,
-  `check-public-hygiene`) run clean against the tree as it stood at handoff
-  time, and each was proven load-bearing by deliberately introducing the
-  exact violation it exists to catch, confirming a non-zero exit and the
-  expected message, then deleting the fixture and confirming a clean exit
-  again. See the session transcript for exact command output; summarized:
-  - `check-no-network`: red on a `fetch(...)` call under
-    `packages/core/src`, green after removal.
-  - `check-no-payload-logging`: red on `console.log('sending', payload.tier1)`,
-    green after removal.
-  - `check-public-hygiene`: red on a tracked `profile.json` and on a raw
-    `ESC` (0x1B) byte in a fixture file under `packages/core/src`, green
-    after both were removed/untracked.
-- `npm run check:no-network`, `npm run check:no-payload-logging`, and
-  `npm run check:public-hygiene` (as wired in the pre-existing `package.json`)
-  all resolve to these exact scripts and were not renamed.
+Do not repeat the earlier "147 tests" figure without re-deriving it: 128 is
+the actual number of tests this pass could run to a real pass/fail verdict.
+The `src/main` suite is real and not fake-empty (it visibly attempts to run
+and throws), so its tests are neither passing nor failing yet — they are
+unrunnable in their current form.
+
+## What this pass (packaging) added
+
+- **`electron-builder.yml`** — a Squirrel.Windows target via
+  `electron-builder` + `electron-builder-squirrel-windows`. Code signing is
+  explicitly and permanently disabled: `forceCodeSigning: false`,
+  `signExecutable: false`, `signAndEditExecutable: false`. No `setupExe` or
+  `noMsi` keys (they fail schema validation on this version); `squirrelWindows.msi:
+  false` is used instead. A non-empty `author` field was added to the root
+  `package.json` (Squirrel packaging requires one).
+- **`scripts/generate-icon.mjs`** — extended (was 32x32-PNG-only) to also
+  emit a genuine multi-resolution `assets/icon.ico` (16, 24, 32, 48, 64, 128,
+  256px, each entry PNG-compressed — verified by reading the ICO directory
+  back, not by trusting the write), and to emit `assets/icon.png` at 256x256
+  instead of 32x32 (electron-builder's own PNG-icon floor; verified by
+  reading the IHDR chunk back: `256x256`).
+- **`download-dependencies.bat`** — fetches everything the build needs:
+  Node/npm presence check, `npm ci` (falls back to `npm install`) against the
+  committed `package-lock.json` (whose per-package `integrity` field is the
+  pinned, verified digest for every npm dependency), then approves and runs
+  Electron's own install step when `node_modules/electron/dist/electron.exe`
+  is missing (npm's install-script gate can leave it un-run even after `npm
+  ci` reports success — verified this actually happens on this machine: the
+  binary was missing after a clean install and `node
+  node_modules/electron/install.js` fixed it). Idempotent; `/s` /
+  `--silent` / `SILENT=1` all suppress prompts and it exits non-zero on the
+  first real failure.
+- **`build.bat`** — pre-elevates on interactive runs only (never in silent
+  mode, so CI never hangs on a UAC prompt), calls
+  `download-dependencies.bat` itself, refreshes `PATH` from the registry
+  after installing anything, runs `npm run build`, verifies
+  `dist/main/index.js` exists, and only then — as its last step — asks
+  whether to launch the app. **Verified**: `build.bat /s` on this machine
+  exits 0 and produces a working `dist/`.
+- **`build-installer.bat`** — same contract, then runs `npx electron-builder
+  --win squirrel --config electron-builder.yml`, locates the produced
+  `Setup*.exe` under `dist/installer/squirrel-windows/` (not the `dist/`
+  root — electron-builder's own output layout), rejects it if implausibly
+  small, and reports its exact size, SHA-256, and Authenticode signature
+  status. **Verified**: `build-installer.bat /s` on this machine exits 0 and
+  produced:
+  - `dist/installer/squirrel-windows/agent-whip-Setup-0.1.0.exe`
+    (147,575,808 bytes)
+  - `dist/installer/squirrel-windows/RELEASES`
+  - `dist/installer/squirrel-windows/agent-whip-0.1.0-full.nupkg`
+    (146,879,782 bytes)
+  - SHA-256 of the setup exe:
+    `8C00FD3FC7C2A93D4CE1168163A4A92A3455700557FCCCBB6AE5953A1487307F`
+  - `Get-AuthenticodeSignature` on the setup exe reports `NotSigned`, as
+    required by the permanent no-signing policy.
+  - This script does **not** publish, tag, or create a release — it only
+    builds and verifies the local artifact. No release has ever been
+    published from this repository; the above is a local build proof only.
 
 ## What was NOT done in this pass
 
-- No `git commit` was made — integration is left to the orchestrating agent
-  per this lane's instructions.
-- `npm run build` / `npm run typecheck` / the real test suite were not run —
-  they depend on `packages/*` source this lane does not own, and much of it
-  did not exist yet at handoff time (e.g. `packages/cli` had no `src/`).
-- No screenshots or release were produced — nothing in `packages/` is far
-  enough along to run yet.
-- The docs site (v1.1 milestone) was not started; `docs/` is the in-repo
-  Markdown source only, not yet published anywhere.
+- `src/main`'s two test files were not fixed (see above) — that's the
+  Electron/tray lane's source, not packaging's.
+- No `git commit` was made in this pass; per the assignment, this lane's own
+  files are left for the orchestrator to review and commit.
+- No release was published, no tag was created, and CI (`release.yml`) was
+  not exercised — only the local `build-installer.bat` path was run and
+  verified, on this one machine.
+- Non-Windows (`build.sh` / `build-installer.sh` / `download-dependencies.sh`)
+  equivalents were not added — this project's active delivery scope is
+  Windows only per the shared instructions, and no other-OS packaging exists
+  yet to mirror.
+- `docs/`, the screenshot section of `README.md`, the nodeterm canvas control
+  surface, and the documentation site (all v1.1 / Milestone 8 items) were not
+  touched — out of this lane's ownership and out of scope for packaging.
 
 ## Next steps for whoever picks this up
 
-1. Once `packages/core`, `packages/cli`, and `packages/paste-frame` have real
-   implementations, re-run `npm run check` from repo root and fix anything
-   the guards catch — they were written to fail closed, not to be tuned to
-   pass.
-2. Wire `ci.yml`'s test step against the real `packages/*/dist/**/*.test.js`
-   output once packages actually build.
-3. `release.yml` is ready to run but has never actually published anything —
-   the first real run will be the first proof it works end to end. Watch it,
-   don't assume it from reading the YAML.
-4. `pages.yml` triggers on `site/**` and on the Release workflow completing —
-   confirm `site/` actually produces a deployable `dist`/output directory
-   before trusting a green Pages run.
-5. Populate `README.md`'s screenshot section with real captures once there's
-   a working CLI or dispatcher GUI to point a camera at.
+1. Fix `src/main`'s two test files (or the root `package.json` module type)
+   so `npm run test` actually runs and reports a real pass/fail count for
+   them, then update this document's test-count section with the real
+   number — don't guess it.
+2. Wire `ci.yml` and `release.yml` to actually invoke
+   `build.bat`/`build-installer.bat` (or the underlying `npm run build` +
+   `npx electron-builder` commands they wrap) rather than duplicating the
+   steps inline, so a change to the packaging contract can't silently drift
+   from what CI runs.
+3. The first real `release.yml` run will be the first proof any of this
+   works end-to-end in CI rather than just on one developer machine — watch
+   it, don't assume it from a green YAML lint.
+4. `electron-builder.yml`'s `squirrelWindows.iconUrl` points at a
+   `raw.githubusercontent.com` URL for a repo (`Ding-Ding-Projects/agent-whip`) that
+   may not match this project's real GitHub org/name — confirm and correct
+   the URL before the first real release.

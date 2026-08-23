@@ -1,6 +1,6 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
-import type { AppSettings, SettingsPatch } from '../shared/ipc-contracts.js';
+import type { AppSettings, SettingsPatch } from '../shared/ipc-contracts.ts';
 import { DEFAULT_PROFILE_PATH } from '@agent-whip/core';
 
 export const DEFAULT_SETTINGS: AppSettings = {

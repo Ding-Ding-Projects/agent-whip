@@ -1,4 +1,4 @@
-import type { CrackResultViewModel, SessionViewModel } from '../shared/ipc-contracts.js';
+import type { CrackResultViewModel, SessionViewModel } from '../shared/ipc-contracts.ts';
 
 const root = document.getElementById('popover-root');
 if (!root) throw new Error('popover-root missing');

@@ -1,5 +1,5 @@
-import type { AppSettings, ProfileStatusViewModel, TierIdentityViewModel } from '../shared/ipc-contracts.js';
-import { computeSearchOutcome, stepTabIndex, type SearchableRow } from './settings-logic.js';
+import type { AppSettings, ProfileStatusViewModel, TierIdentityViewModel } from '../shared/ipc-contracts.ts';
+import { computeSearchOutcome, stepTabIndex, type SearchableRow } from './settings-logic.ts';
 
 const root = document.getElementById('settings-root');
 if (!root) throw new Error('settings-root missing');

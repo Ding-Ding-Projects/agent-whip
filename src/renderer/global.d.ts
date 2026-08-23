@@ -1,4 +1,4 @@
-import type { AgentWhipBridge } from '../shared/ipc-contracts.js';
+import type { AgentWhipBridge } from '../shared/ipc-contracts.ts';
 
 declare global {
   interface Window {

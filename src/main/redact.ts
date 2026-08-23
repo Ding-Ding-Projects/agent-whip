@@ -10,7 +10,7 @@
 // send a payload across, there is no bridge method shaped to carry it.
 import { createHash } from 'node:crypto';
 import type { ProfileRejectReason, ProfileState } from '@agent-whip/core';
-import type { ProfileStatusViewModel, Tier, TierIdentityViewModel } from '../shared/ipc-contracts.js';
+import type { ProfileStatusViewModel, Tier, TierIdentityViewModel } from '../shared/ipc-contracts.ts';
 
 function shortHash(payload: string): string {
   const full = createHash('sha256').update(payload, 'utf8').digest('hex');

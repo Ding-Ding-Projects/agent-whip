@@ -1,9 +1,9 @@
 import { dialog, ipcMain, BrowserWindow } from 'electron';
 import { CrackDetector } from '@agent-whip/core';
-import { IPC, type AppSettings, type SettingsPatch, type Tier } from '../shared/ipc-contracts.js';
-import { crackSession, listSessionViewModels } from './session-service.js';
-import { getPayloadForDelivery, getProfileStatus, getTierIdentity, reloadProfile, setProfilePath } from './profile-service.js';
-import type { SettingsStore } from './settings-store.js';
+import { IPC, type AppSettings, type SettingsPatch, type Tier } from '../shared/ipc-contracts.ts';
+import { crackSession, listSessionViewModels } from './session-service.ts';
+import { getPayloadForDelivery, getProfileStatus, getTierIdentity, reloadProfile, setProfilePath } from './profile-service.ts';
+import type { SettingsStore } from './settings-store.ts';
 
 function isTier(value: unknown): value is Tier {
   return value === 1 || value === 2;

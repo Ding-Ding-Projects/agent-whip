@@ -1,6 +1,6 @@
 import { join } from 'node:path';
 import { Tray, nativeImage, type BrowserWindow } from 'electron';
-import { createPopoverWindow } from './windows.js';
+import { createPopoverWindow } from './windows.ts';
 
 let tray: Tray | null = null;
 let popover: BrowserWindow | null = null;

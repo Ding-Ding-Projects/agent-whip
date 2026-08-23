@@ -1,5 +1,10 @@
 {
   "compilerOptions": {
+    // Lets a test import './redact.ts' so `node --experimental-strip-types` can run it directly,
+    // while tsc still emits './redact.js'. Without this the tests only ran compiled and a plain
+    // strip-types run died with ERR_MODULE_NOT_FOUND on a sibling that was right there.
+    "allowImportingTsExtensions": true,
+    "rewriteRelativeImportExtensions": true,
     "target": "ES2022",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",

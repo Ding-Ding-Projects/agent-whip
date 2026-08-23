@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { buildProfileStatus, buildTierIdentity } from './redact.js';
+import { buildProfileStatus, buildTierIdentity } from './redact.ts';
 import type { ProfileState } from '@agent-whip/core';
 
 const SENTINEL = 'THIS-IS-THE-SECRET-TRIGGER-PHRASE-DO-NOT-LEAK-1234567890';

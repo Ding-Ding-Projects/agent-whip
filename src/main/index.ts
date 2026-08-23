@@ -1,10 +1,10 @@
 import { app, BrowserWindow } from 'electron';
-import { IPC } from '../shared/ipc-contracts.js';
-import { createTray } from './tray.js';
-import { registerIpcHandlers } from './ipc.js';
-import { SettingsStore } from './settings-store.js';
-import { setProfilePath } from './profile-service.js';
-import { openSettingsWindow } from './windows.js';
+import { IPC } from '../shared/ipc-contracts.ts';
+import { createTray } from './tray.ts';
+import { registerIpcHandlers } from './ipc.ts';
+import { SettingsStore } from './settings-store.ts';
+import { setProfilePath } from './profile-service.ts';
+import { openSettingsWindow } from './windows.ts';
 
 const gotLock = app.requestSingleInstanceLock();
 if (!gotLock) {

@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron';
-import { IPC, type AgentWhipBridge } from '../shared/ipc-contracts.js';
+import { IPC, type AgentWhipBridge } from '../shared/ipc-contracts.ts';
 
 // A deliberately narrow bridge: every method here is a one-to-one wrapper around a single
 // ipcRenderer.invoke/on call for a fixed channel. There is no generic `invoke(channel, ...args)`

@@ -1,5 +1,5 @@
-import type { SessionViewModel } from '../shared/ipc-contracts.js';
-import { tryLoadDelivery, type ResolveResult, type SessionRecord } from './delivery-shim.js';
+import type { SessionViewModel } from '../shared/ipc-contracts.ts';
+import { tryLoadDelivery, type ResolveResult, type SessionRecord } from './delivery-shim.ts';
 
 /**
  * Builds the redacted session list shown in the popover. Never returns anything from a

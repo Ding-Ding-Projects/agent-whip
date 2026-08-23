@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { computeSearchOutcome, stepTabIndex, type SearchableRow } from './settings-logic.js';
+import { computeSearchOutcome, stepTabIndex, type SearchableRow } from './settings-logic.ts';
 
 test('stepTabIndex wraps forward and backward cyclically', () => {
   assert.equal(stepTabIndex(0, 4, 1), 1);

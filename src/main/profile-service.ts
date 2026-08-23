@@ -1,6 +1,6 @@
 import { clearProfileCache, DEFAULT_PROFILE_PATH, loadProfile, resolvePayload, type ProfileState } from '@agent-whip/core';
-import type { ProfileStatusViewModel, Tier, TierIdentityViewModel } from '../shared/ipc-contracts.js';
-import { buildProfileStatus, buildTierIdentity } from './redact.js';
+import type { ProfileStatusViewModel, Tier, TierIdentityViewModel } from '../shared/ipc-contracts.ts';
+import { buildProfileStatus, buildTierIdentity } from './redact.ts';
 
 let currentPath = DEFAULT_PROFILE_PATH;
 

@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-check:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Build
+        run: npm run build --if-present
+
+      - name: Typecheck + guard scripts (check)
+        run: npm run check --if-present
+
+      # NOTE, by explicit house policy: GitHub Actions runs no tests and no
+      # lint that GATE anything, in any project. This step runs the real test
+      # suite and reports its outcome so contributors and reviewers can see
+      # whether it passed, but it never fails the job and is never wired as a
+      # required status check. Checking moved to where a human asked for it:
+      # locally, before a push. A failing local test is still a defect to fix
+      # in the same task that introduced it — it's just not a merge gate.
+      - name: Run test suite (reported, non-gating)
+        continue-on-error: true
+        run: npm test --if-present
+
+      - name: Collect logs and artifacts
+        if: ${{ always() }}
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-output-${{ github.run_id }}
+          path: |
+            **/*.log
+            packages/*/dist/**
+          if-no-files-found: warn
+          retention-days: 14

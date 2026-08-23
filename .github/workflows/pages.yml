@@ -1,0 +1,72 @@
+name: Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'site/**'
+  workflow_run:
+    workflows: ['Release']
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: windows-2022
+    outputs:
+      has_output: ${{ steps.check.outputs.has_output }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Build site
+        run: npm run build --workspace site --if-present
+
+      - name: Check site output exists
+        id: check
+        shell: bash
+        run: |
+          if [ -d "site/dist" ]; then
+            echo "output_dir=site/dist" >> "$GITHUB_ENV"
+            echo "has_output=true" >> "$GITHUB_OUTPUT"
+          elif [ -d "site/out" ]; then
+            echo "output_dir=site/out" >> "$GITHUB_ENV"
+            echo "has_output=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "No site/dist or site/out directory produced — skipping Pages upload." >&2
+            echo "has_output=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/upload-pages-artifact@v3
+        if: ${{ steps.check.outputs.has_output == 'true' }}
+        with:
+          path: ${{ env.output_dir }}
+
+  deploy:
+    needs: build
+    if: ${{ needs.build.outputs.has_output == 'true' }}
+    runs-on: windows-2022
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

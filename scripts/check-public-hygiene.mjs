@@ -25,7 +25,12 @@ try {
   console.log('check-public-hygiene: git ls-files unavailable, skipping tracked-file scan (' + err.message + ')');
 }
 
-// 2. No raw C1 (0x80-0x9F) or ESC (0x1B) control byte in source outside packages/paste-frame/.
+// 2. No raw C1 (U+0080-U+009F) or ESC (U+001B) control CODEPOINT in source outside
+// packages/paste-frame/. This must decode the file as UTF-8 text and inspect codepoints,
+// NOT raw bytes: a UTF-8-encoded em dash (—) is the byte sequence E2 80 94, whose middle
+// byte is 0x80 — the same value as the raw C1 control byte we're hunting for. Scanning raw
+// bytes flags every non-ASCII punctuation mark in the repository as a false positive.
+// Decoding first and checking the resulting string's code points sidesteps that entirely.
 const SOURCE_EXT = /\.(ts|tsx|js|mjs|cjs)$/;
 const EXEMPT_PREFIX = ['packages', 'paste-frame', 'src'].join(sep);
 
@@ -37,16 +42,17 @@ if (existsSync('packages') || existsSync('src')) {
       if (rel.startsWith(EXEMPT_PREFIX + sep) || rel === EXEMPT_PREFIX) continue;
       // Also exempt that package's own test fixtures, wherever paste-frame lives.
       if (rel.includes(`${sep}paste-frame${sep}`)) continue;
-      const buf = readFileSync(file);
-      for (let i = 0; i < buf.length; i++) {
-        const byte = buf[i];
-        const isEsc = byte === 0x1b;
-        const isC1 = byte >= 0x80 && byte <= 0x9f;
-        if (isEsc || isC1) {
-          const upto = buf.subarray(0, i).toString('utf8');
-          const line = upto.split(/\r\n|\n|\r/).length;
-          violations.push(`${rel}:${line}: raw control byte 0x${byte.toString(16)} outside packages/paste-frame/`);
-          break; // one report per file is enough to fail closed
+      const text = readFileSync(file, 'utf8');
+      const lines = text.split(/\r\n|\n|\r/);
+      outer: for (let li = 0; li < lines.length; li++) {
+        for (const ch of lines[li]) {
+          const cp = ch.codePointAt(0);
+          const isEsc = cp === 0x1b;
+          const isC1 = cp >= 0x80 && cp <= 0x9f;
+          if (isEsc || isC1) {
+            violations.push(`${rel}:${li + 1}: raw control codepoint U+${cp.toString(16).padStart(4, '0')} outside packages/paste-frame/`);
+            break outer; // one report per file is enough to fail closed
+          }
         }
       }
     }

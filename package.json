@@ -11,15 +11,29 @@
     "node": ">=20"
   },
   "scripts": {
-    "build": "npm run build --workspaces --if-present",
-    "typecheck": "tsc -b packages/paste-frame packages/core packages/cli",
-    "test": "node --test packages/*/dist/**/*.test.js",
+    "build": "npm run build --workspaces --if-present && npm run build:renderer && npm run build:main && npm run build:preload",
+    "build:renderer": "vite build",
+    "build:main": "tsc -p tsconfig.main.json",
+    "build:preload": "esbuild src/preload/index.ts --bundle --platform=node --format=cjs --external:electron --outfile=dist/preload/index.cjs",
+    "generate:icon": "node scripts/generate-icon.mjs",
+    "typecheck": "tsc -b packages/paste-frame packages/core packages/cli && tsc -p tsconfig.main.json --noEmit && tsc -p tsconfig.renderer.json --noEmit",
+    "test": "node --test packages/*/dist/**/*.test.js && node --test --experimental-strip-types src/main/*.test.ts",
     "check:no-network": "node scripts/check-no-network.mjs",
     "check:no-payload-logging": "node scripts/check-no-payload-logging.mjs",
     "check:public-hygiene": "node scripts/check-public-hygiene.mjs",
-    "check": "npm run check:no-network && npm run check:no-payload-logging && npm run check:public-hygiene"
+    "check": "npm run check:no-network && npm run check:no-payload-logging && npm run check:public-hygiene && npm run check:reserved-terms",
+    "check:reserved-terms": "node scripts/check-reserved-terms.mjs",
+    "reserved:lock": "node scripts/make-reserved-lock.mjs"
+  },
+  "dependencies": {
+    "@agent-whip/core": "0.1.0",
+    "@agent-whip/delivery": "0.1.0"
   },
   "devDependencies": {
-    "@types/node": "^26.2.0"
+    "@types/node": "^26.2.0",
+    "electron": "^43.3.0",
+    "esbuild": "^0.28.1",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.6"
   }
 }

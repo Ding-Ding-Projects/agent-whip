@@ -1,0 +1,140 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - '**'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    runs-on: windows-2022
+    outputs:
+      started_at: ${{ steps.timing.outputs.started_at }}
+      version: ${{ steps.version.outputs.version }}
+      tag: ${{ steps.version.outputs.tag }}
+    steps:
+      - name: Record start time
+        id: timing
+        shell: bash
+        run: echo "started_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Compute version and unique tag
+        id: version
+        shell: bash
+        run: |
+          base_version=$(node -p "require('./package.json').version" 2>/dev/null || echo "0.1.0")
+          short_sha=$(git rev-parse --short HEAD)
+          run_number="${{ github.run_number }}"
+          tag="v${base_version}-${run_number}-${short_sha}"
+          echo "version=${base_version}" >> "$GITHUB_OUTPUT"
+          echo "tag=${tag}" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: prepare
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Build
+        run: npm run build --if-present
+
+      # Permanent house policy: code signing is never performed here. Every
+      # installer this workflow produces is, and will always be, unsigned.
+      - name: Package (unsigned)
+        run: npm run package --if-present
+
+      - name: Collect build output
+        if: ${{ always() }}
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-assets-${{ needs.prepare.outputs.tag }}
+          path: |
+            release/**
+            dist/**
+          if-no-files-found: warn
+          retention-days: 90
+
+  publish:
+    needs: [prepare, build]
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download build output
+        uses: actions/download-artifact@v4
+        with:
+          name: release-assets-${{ needs.prepare.outputs.tag }}
+          path: release-out
+
+      - name: Record completion time and duration
+        id: timing
+        shell: bash
+        run: |
+          started_at="${{ needs.prepare.outputs.started_at }}"
+          completed_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          start_s=$(date -u -d "${started_at}" +%s 2>/dev/null || date -u -j -f "%Y-%m-%dT%H:%M:%SZ" "${started_at}" +%s)
+          end_s=$(date -u -d "${completed_at}" +%s 2>/dev/null || date -u -j -f "%Y-%m-%dT%H:%M:%SZ" "${completed_at}" +%s)
+          diff=$(( end_s - start_s ))
+          printf -v duration '%02d:%02d:%02d' $((diff/3600)) $(((diff%3600)/60)) $((diff%60))
+          echo "completed_at=${completed_at}" >> "$GITHUB_OUTPUT"
+          echo "duration=${duration}" >> "$GITHUB_OUTPUT"
+
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN || secrets.ORG_TOKEN || secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          tag="${{ needs.prepare.outputs.tag }}"
+          notes_file=$(mktemp)
+          {
+            echo "## agent-whip ${tag}"
+            echo
+            echo "> [!WARNING]"
+            echo "> This installer is **unsigned**. Code signing is permanently out of"
+            echo "> scope for this project. Windows SmartScreen will show an"
+            echo "> unknown-publisher warning — this is expected, not a sign of"
+            echo "> tampering. Verify the release commit and asset hashes below if in"
+            echo "> doubt."
+            echo
+            echo "- Workflow started: ${{ needs.prepare.outputs.started_at }}"
+            echo "- Workflow completed: ${{ steps.timing.outputs.completed_at }}"
+            echo "- Workflow duration: ${{ steps.timing.outputs.duration }}"
+            echo "- Commit: ${{ github.sha }}"
+            echo
+            echo "Checks run: build, typecheck, guard scripts (check:no-network,"
+            echo "check:no-payload-logging, check:public-hygiene). Test suite results"
+            echo "are reported in CI but do not gate this release (see ci.yml)."
+          } > "${notes_file}"
+          shopt -s nullglob
+          assets=(release-out/**/*)
+          if [ ${#assets[@]} -eq 0 ]; then
+            gh release create "${tag}" \
+              --title "agent-whip ${tag}" \
+              --notes-file "${notes_file}"
+          else
+            gh release create "${tag}" \
+              --title "agent-whip ${tag}" \
+              --notes-file "${notes_file}" \
+              "${assets[@]}"
+          fi

@@ -1,5 +1,9 @@
 # Handoff
 
+## 2026-08-22 — paste-frame vendored into material-nodeterm + drift guard
+
+`packages/paste-frame` is duplicated (not depended on) by `material-nodeterm/src/core/paste-injection.ts`, because material-nodeterm is public and this package is unpublished — a `file:` dependency across that boundary installs green and dangles at runtime for anyone cloning material-nodeterm alone. `scripts/check-paste-frame-parity.mjs` is now the sixth guard in `npm run check` (`check:paste-frame-parity`); it fails when the two implementations drift and skips cleanly when the sibling repo is absent. Details in `packages/paste-frame/README.md`. This is a mitigation, not the fix — publish the package once registry rights exist and delete both the vendored copy and both guard scripts.
+
 ## Current state (2026-08-22)
 
 Six implementation lanes have landed against this scaffold, plus this

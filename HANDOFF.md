@@ -158,3 +158,35 @@ run. Do not read the release's existence as evidence the workflow works.
 **Discussion pinning is not available through the API.** `pinDiscussion` does not exist
 on the GraphQL `Mutation` type, so the changelog Announcement (Discussion #2) is
 unpinned. Pin it by hand if it matters.
+
+
+## Status refresh (second update)
+
+Supersedes the strip-types note and the earlier release/limitation lists above.
+
+**Tests: 152 passing.** 128 `packages/*`, 12 GUI (main + renderer), 9 skills,
+3 skills-installer. The GUI suites now run **both** compiled and directly under
+`--experimental-strip-types`; the earlier note saying they only run compiled is
+obsolete.
+
+**Guards: six.** `check:no-network`, `check:no-payload-logging`,
+`check:public-hygiene`, `check:reserved-terms`, `check:documented-commands`,
+`check:paste-frame-parity`.
+
+**`crack` works.** It delivers through nonce-verified filesystem mailbox IPC and
+was proven against a separate OS process via the built CLI binary — tier 1 and
+tier 2 both landed in the child's stdout. The `no-route` limitation recorded
+earlier is closed.
+
+**Site is live** at <https://ding-ding-projects.github.io/agent-whip/>; the
+repository homepage points at it. Pages uses the **workflow** build type and
+publishes `site/` directly — legacy Pages had been serving the repository root,
+so the public landing page was the Electron placeholder while returning HTTP 200.
+
+**All three workflows are green** and Release publishes the real installer.
+
+**Sanitizer parity guard** is present in this repo and in the sibling terminal
+project. It is a mitigation, not the fix.
+
+**Two manual steps remain, and neither has an API**: the social-preview upload
+and pinning the changelog Discussion.

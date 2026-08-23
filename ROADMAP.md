@@ -131,3 +131,39 @@ attempt but does not yet deliver into a real pty or hook channel.
 - [x] `build-installer.bat` — same contract, produces and verifies the real
       Squirrel installer; verified end to end with `build-installer.bat /s`
       producing `agent-whip-Setup-0.1.0.exe`
+
+
+## Status refresh — everything below was closed after the first release
+
+The unticked items above about a missing transport, a missing docs site, a red
+release workflow and the duplicated sanitizer are **superseded**. They are left
+in place rather than rewritten so the order of what was known when stays readable.
+
+- [x] **Real delivery transport.** `crack` no longer refuses with `no-route`.
+      Nonce-verified filesystem mailbox IPC; the named-pipe route was abandoned
+      because `node:net` contradicts the package's own privacy contract.
+      Proven against a genuinely separate OS process through the built CLI.
+- [x] **Documentation site live** at <https://ding-ding-projects.github.io/agent-whip/>,
+      with the repository homepage field now pointing at it. 144 structural checks.
+- [x] **All three workflows green.** Release publishes the real Squirrel installer
+      (verified by downloading it and checking the PE header and SHA-256), not raw
+      `dist/` output as it briefly did.
+- [x] **GUI suites run without compiling first** — `allowImportingTsExtensions` plus
+      `rewriteRelativeImportExtensions`.
+- [x] **Sanitizer duplication made loud.** Both repositories carry a parity guard.
+      This is a mitigation, not the fix; the fix is publishing the package.
+
+### Still genuinely open
+
+- [ ] Publish `@agent-whip/paste-frame` so the duplication can end rather than
+      merely be guarded. Needs registry rights that do not exist yet.
+- [ ] Detect bracketed-paste mode. The CLI and GUI both pass `bracketedPaste: false`,
+      which is a safe default (the two-write path is correct against any target)
+      rather than a guess, but it is not detection.
+- [ ] Headless-browser assertions for the site. The 320px reflow and the palette's
+      focus behaviour are currently checked structurally, not in a real DOM.
+- [ ] Decide whether a release on **every push** is wanted. It currently mints a new
+      "Latest" for workflow-only commits; three appeared within half an hour.
+- [ ] Two steps have no API and remain manual: uploading `social-preview.png`
+      (Settings → General → Social preview) and pinning the changelog Discussion
+      (`pinDiscussion` is not a field on the GraphQL `Mutation` type).

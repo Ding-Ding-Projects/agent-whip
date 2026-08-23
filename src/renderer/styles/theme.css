@@ -1,0 +1,143 @@
+/* M3 tokens as CSS custom properties. :root carries the light palette; the dark palette is
+   layered on via prefers-color-scheme AND via [data-theme] so both "system" and an explicit
+   user choice work, per the settings Theme control. */
+:root {
+  color-scheme: light;
+  --m3-primary: #6750a4;
+  --m3-on-primary: #ffffff;
+  --m3-primary-container: #eaddff;
+  --m3-on-primary-container: #21005d;
+  --m3-surface: #fef7ff;
+  --m3-on-surface: #1d1b20;
+  --m3-surface-variant: #e7e0ec;
+  --m3-on-surface-variant: #49454f;
+  --m3-outline: #79747e;
+  --m3-outline-variant: #cac4d0;
+  --m3-error: #b3261e;
+  --m3-elevation-1: 0 1px 2px rgba(0, 0, 0, 0.3), 0 1px 3px 1px rgba(0, 0, 0, 0.15);
+  --m3-shape-small: 8px;
+  --m3-shape-medium: 12px;
+  --m3-shape-large: 16px;
+  --m3-density-gap: 12px;
+  --m3-font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --m3-motion-fast: 120ms;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']):not([data-theme='dark']) {
+    color-scheme: dark;
+    --m3-surface: #141218;
+    --m3-on-surface: #e6e0e9;
+    --m3-surface-variant: #49454f;
+    --m3-on-surface-variant: #cac4d0;
+    --m3-outline: #948f99;
+    --m3-outline-variant: #49454f;
+    --m3-primary-container: #4f378b;
+    --m3-on-primary-container: #eaddff;
+  }
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+  --m3-surface: #141218;
+  --m3-on-surface: #e6e0e9;
+  --m3-surface-variant: #49454f;
+  --m3-on-surface-variant: #cac4d0;
+  --m3-outline: #948f99;
+  --m3-outline-variant: #49454f;
+  --m3-primary-container: #4f378b;
+  --m3-on-primary-container: #eaddff;
+}
+
+[data-density='compact'] {
+  --m3-density-gap: 6px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body.m3-surface {
+  margin: 0;
+  font-family: var(--m3-font);
+  background: var(--m3-surface);
+  color: var(--m3-on-surface);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition-duration: 0.001ms !important;
+    animation-duration: 0.001ms !important;
+  }
+}
+
+button, input, select {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--m3-primary);
+  outline-offset: 2px;
+}
+
+.m3-button {
+  appearance: none;
+  border: none;
+  border-radius: var(--m3-shape-large);
+  background: var(--m3-primary);
+  color: var(--m3-on-primary);
+  padding: 8px 16px;
+  min-height: 40px;
+  min-width: 40px;
+  cursor: pointer;
+}
+
+.m3-button[disabled] {
+  background: var(--m3-outline-variant);
+  color: var(--m3-on-surface-variant);
+  cursor: not-allowed;
+}
+
+.m3-button--tonal {
+  background: var(--m3-primary-container);
+  color: var(--m3-on-primary-container);
+}
+
+.m3-card {
+  background: var(--m3-surface-variant);
+  border-radius: var(--m3-shape-medium);
+  padding: var(--m3-density-gap);
+}
+
+.m3-toast-region {
+  position: fixed;
+  right: 12px;
+  bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 1000;
+}
+
+.m3-toast {
+  background: var(--m3-on-surface);
+  color: var(--m3-surface);
+  border-radius: var(--m3-shape-small);
+  padding: 10px 14px;
+  box-shadow: var(--m3-elevation-1);
+  font-size: 13px;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}

@@ -1,0 +1,60 @@
+#popover-root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--m3-density-gap);
+  padding: var(--m3-density-gap);
+  min-height: 100vh;
+}
+
+.session-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+}
+
+.session-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.session-meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.session-id {
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.session-cwd {
+  font-size: 11px;
+  color: var(--m3-on-surface-variant);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.session-unavailable {
+  font-size: 11px;
+  color: var(--m3-error);
+}
+
+.status-line {
+  font-size: 12px;
+  color: var(--m3-on-surface-variant);
+}
+
+.empty-state {
+  font-size: 13px;
+  color: var(--m3-on-surface-variant);
+  text-align: center;
+  padding: 16px;
+}

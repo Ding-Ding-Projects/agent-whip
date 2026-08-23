@@ -159,20 +159,32 @@ jobs:
           # directories, which `gh release create` cannot upload as an asset.
           shopt -s globstar nullglob
           candidates=(release-out/**/*)
-          assets=()
+
+          # gh release create names each asset by its basename, so two files
+          # sharing a name in different subdirectories (two "index.js", say)
+          # collide with an HTTP 422 on upload. Stage a flat directory of
+          # uniquely-named copies instead of uploading straight from the
+          # nested tree.
+          stage_dir=$(mktemp -d)
+          asset_count=0
           for f in "${candidates[@]}"; do
             if [ -f "$f" ]; then
-              assets+=("$f")
+              rel="${f#release-out/}"
+              flat_name=$(printf '%s' "${rel}" | tr '/' '__')
+              cp "$f" "${stage_dir}/${flat_name}"
+              asset_count=$((asset_count + 1))
             fi
           done
 
-          if [ ${#assets[@]} -eq 0 ]; then
+          if [ "${asset_count}" -eq 0 ]; then
             echo "No built release files found under release-out/ -- refusing to" >&2
             echo "publish an assetless release. This is a build/packaging problem," >&2
             echo "not something to paper over by shipping a release with nothing" >&2
             echo "attached." >&2
             exit 1
           fi
+
+          assets=("${stage_dir}"/*)
 
           gh release create "${tag}" \
             --title "agent-whip ${tag}" \

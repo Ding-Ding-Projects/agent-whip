@@ -1,0 +1,17 @@
+{
+  "name": "@agent-whip/delivery",
+  "version": "0.1.0",
+  "description": "Resolves a live agent session by positive process identity and delivers a trigger phrase into it without ever interrupting the running process.",
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc -b",
+    "test": "node --test --experimental-strip-types src/*.test.ts"
+  },
+  "dependencies": {
+    "@agent-whip/paste-frame": "0.1.0"
+  }
+}

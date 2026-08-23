@@ -1,0 +1,11 @@
+{
+  "name": "@agent-whip/paste-frame",
+  "version": "0.1.0",
+  "description": "Bracketed-paste framing for injecting text into a live TUI without the payload becoming structure.",
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist"],
+  "scripts": { "build": "tsc -b" }
+}

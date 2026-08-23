@@ -1,0 +1,10 @@
+node_modules/
+dist/
+out/
+release/*
+!release/.gitkeep
+*.log
+.DS_Store
+# Never commit a local payload profile. The whole sanitization design depends on this.
+profile.json
+*.profile.json

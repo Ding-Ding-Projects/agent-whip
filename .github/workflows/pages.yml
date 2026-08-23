@@ -49,9 +49,25 @@ jobs:
         if: ${{ steps.sitecheck.outputs.present == 'true' }}
         run: npm ci --no-audit --no-fund
 
-      - name: Build site
+      # site/ is plain static HTML with no package.json, so there is no workspace to build.
+      # `npm run build --workspace site --if-present` failed outright here: --if-present guards
+      # a missing SCRIPT, not a missing WORKSPACE. Only build if the site ever grows its own
+      # package.json.
+      - name: Build site (only if it has its own package.json)
         if: ${{ steps.sitecheck.outputs.present == 'true' }}
-        run: npm run build --workspace site --if-present
+        shell: bash
+        run: |
+          if [ -f site/package.json ]; then
+            npm run build --workspace site --if-present
+          else
+            echo "site/ has no package.json - plain static HTML, nothing to build."
+          fi
+
+      # Structural checks. Reported, never gating, matching how ci.yml treats the test suite.
+      - name: Check site structure
+        if: ${{ steps.sitecheck.outputs.present == 'true' }}
+        continue-on-error: true
+        run: node site/check-site.mjs
 
       - name: Check site output exists
         id: check
@@ -65,8 +81,12 @@ jobs:
           elif [ -d "site/out" ]; then
             echo "output_dir=site/out" >> "$GITHUB_ENV"
             echo "has_output=true" >> "$GITHUB_OUTPUT"
+          elif [ -f "site/index.html" ]; then
+            # Plain static site: publish site/ itself. This is the normal case for this repo.
+            echo "output_dir=site" >> "$GITHUB_ENV"
+            echo "has_output=true" >> "$GITHUB_OUTPUT"
           else
-            echo "No site/dist or site/out directory produced — skipping Pages upload." >&2
+            echo "No site/dist, site/out, or site/index.html - skipping Pages upload." >&2
             echo "has_output=false" >> "$GITHUB_OUTPUT"
           fi
 

@@ -1,6 +1,6 @@
 {
   "name": "agent-whip",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "Crack a whip at a running AI coding agent session and it switches into a faster operating mode. A mode switch, not an interrupt.",
   "license": "MIT",

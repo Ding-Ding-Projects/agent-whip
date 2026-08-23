@@ -66,8 +66,11 @@ jobs:
           GH_TOKEN: ${{ secrets.RELEASE_TOKEN || secrets.ORG_TOKEN || secrets.GITHUB_TOKEN }}
         shell: bash
         run: |
-          version="$(node -p "require('./package.json').version" 2>/dev/null || echo "0.1.0")"
-          tag="v${version}-${{ github.run_number }}-$(git rev-parse --short HEAD)"
+          # Use the tag the previous step actually resolved. This used to recompute it with the
+          # old derived form, so on a tag push it checked "v0.1.1-12-abc123" while publishing
+          # "v0.1.1" — it asked about a tag that is never published, and could therefore never
+          # fire. A guard that checks the wrong thing is indistinguishable from no guard.
+          tag="${{ steps.version.outputs.tag }}"
           if gh release view "${tag}" >/dev/null 2>&1; then
             echo "A release for tag ${tag} already exists — nothing to publish." >&2
             echo "exists=true" >> "$GITHUB_OUTPUT"
@@ -79,6 +82,11 @@ jobs:
     needs: prepare
     if: ${{ needs.prepare.outputs.tag_exists != 'true' }}
     runs-on: windows-2022
+    outputs:
+      dimsum_present: ${{ steps.dimsum.outputs.present }}
+      dimsum_name: ${{ steps.dimsum.outputs.name }}
+      dimsum_file: ${{ steps.dimsum.outputs.file }}
+      dimsum_reason: ${{ steps.dimsum.outputs.reason }}
     steps:
       - uses: actions/checkout@v4
 
@@ -140,6 +148,27 @@ jobs:
           sha256sum "${files[@]}" > SHA256SUMS.txt
           cat SHA256SUMS.txt
 
+      # Every release carries a dim-sum code name and its photo, resolved from the public catalog.
+      # The picker derives which dishes are already taken from this repository's own releases, so
+      # the mapping stays auditable from the releases themselves. It never blocks a release: if the
+      # catalog is unreachable or every candidate is used it prints a reason and the release ships
+      # without a photo, which the release rules explicitly allow.
+      - name: Resolve the dim-sum code name
+        id: dimsum
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN || secrets.ORG_TOKEN || secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          out=$(node scripts/pick-dim-sum.mjs --out dist/installer/squirrel-windows || echo '{"skipped":"picker failed"}')
+          echo "$out"
+          node -e '
+            const j = JSON.parse(process.argv[1]);
+            const set = (k, v) => require("fs").appendFileSync(process.env.GITHUB_OUTPUT, k + "=" + v + "\n");
+            if (j.skipped) { set("present", "false"); set("reason", j.skipped); }
+            else { set("present", "true"); set("name", j.nameEn + " · " + j.nameZh); set("file", j.file); }
+          ' "$out"
+
       - name: Collect installer artifacts only
         if: ${{ always() }}
         continue-on-error: true
@@ -151,6 +180,7 @@ jobs:
             dist/installer/squirrel-windows/RELEASES
             dist/installer/squirrel-windows/*.nupkg
             dist/installer/squirrel-windows/SHA256SUMS.txt
+            dist/installer/squirrel-windows/hk-dish-*.png
           if-no-files-found: error
           retention-days: 90
 
@@ -197,6 +227,12 @@ jobs:
           {
             echo "## agent-whip ${tag}"
             echo
+            if [ "${{ needs.build.outputs.dimsum_present }}" = "true" ]; then
+              echo "**Code name: ${{ needs.build.outputs.dimsum_name }}** - photo attached below, from the public dim-sum catalog."
+            else
+              echo "_No dim-sum code name this release: ${{ needs.build.outputs.dimsum_reason }}._"
+            fi
+            echo
             echo "> [!WARNING]"
             echo "> This installer is **unsigned**. Code signing is permanently out of"
             echo "> scope for this project. Windows SmartScreen will show an"
@@ -209,11 +245,12 @@ jobs:
             echo "- Workflow duration: ${{ steps.timing.outputs.duration }}"
             echo "- Commit: ${{ github.sha }}"
             echo
-            echo "Checks run: build, typecheck, guard scripts (check:no-network,"
-            echo "check:no-payload-logging, check:public-hygiene,"
-            echo "check:reserved-terms, check:documented-commands). Test suite"
-            echo "results are reported in CI but do not gate this release (see"
-            echo "ci.yml)."
+            echo "Checks run: build, typecheck, and six guard scripts"
+            echo "(check:no-network, check:no-payload-logging,"
+            echo "check:public-hygiene, check:reserved-terms,"
+            echo "check:documented-commands, check:paste-frame-parity)."
+            echo "Test suite results are reported in CI but do not gate this"
+            echo "release (see ci.yml)."
           } > "${notes_file}"
 
           # Collect only real files -- globstar (**) needs `shopt -s globstar`

@@ -78,6 +78,18 @@ Shipped routes:
   races the receiving TUI's paste heuristics — see that package's own documentation for why. When
   the target has not requested bracketed paste, the legacy two-write delivery (`legacyInjection`)
   is used instead.
+- **`mailboxDeliveryRoute()`** — the real, shipped cross-process route (`src/transports/
+  mailbox-route.ts`), built on `ptyWriteRoute`'s exact framing rules but reaching a target that
+  lives in a *different OS process* than the caller, which is what `agent-whip crack` always is. A
+  session that wants to be crackable calls `startSessionDeliveryServer(record, write)` once, from
+  inside the process that owns its real input stream; that call watches a small per-session
+  mailbox directory under `~/.agent-whip/sessions/<id>.mailbox/` and invokes `write` on any request
+  that carries the *exact* nonce generated at registration time. The client (`agent-whip crack`,
+  or this app's own main process) drops a request file and waits for a confirmed response file
+  before ever reporting success; a missing mailbox, an ack timeout, a nonce mismatch, or an
+  explicit writer failure all become `{ ok: false }` — never a silent "delivered". This is
+  filesystem IPC rather than a socket or named pipe specifically because this package's privacy
+  contract (below) forbids `node:net`.
 - **`noopRoute`** — always available, writes nothing, always succeeds. For demos and dry runs.
 
 No Ctrl-C route ships in this package. The extension point is documented directly in

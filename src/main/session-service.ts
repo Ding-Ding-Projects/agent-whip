@@ -1,5 +1,5 @@
 import type { SessionViewModel } from '../shared/ipc-contracts.ts';
-import { tryLoadDelivery, type ResolveResult, type SessionRecord } from './delivery-shim.ts';
+import { crackViaMailbox, tryLoadDelivery, type ResolveResult, type SessionRecord } from './delivery-shim.ts';
 
 /**
  * Builds the redacted session list shown in the popover. Never returns anything from a
@@ -32,35 +32,18 @@ export interface CrackOutcome {
 }
 
 /**
- * Resolves `sessionId` and attempts delivery of `payload` into it, never allowing an interrupting
- * route (agent-whip's whole promise is that it never interrupts).
- *
- * TODO(delivery-integration): this currently only wires up `noopRoute` (a route that always
- * "succeeds" without writing anywhere), because a real PtyWriter for the target's actual transport
- * is owned by the delivery/main-integration lane, not this GUI lane. Once that lane exposes a
- * factory for a real writer keyed by SessionRecord, replace the single-route array below with
- * `[ptyWriteRoute(realWriterFor(resolved.record)), noopRoute]` so a genuine delivery is attempted
- * before the safe no-op fallback.
+ * Resolves `sessionId` and attempts delivery of `payload` into it via the real, non-interrupting
+ * filesystem-mailbox transport (`@agent-whip/delivery`'s `mailboxDeliveryRoute`) -- the same route
+ * `agent-whip crack` uses. This app never owns the target session's actual input stream any more
+ * than the CLI does, so it is the same kind of client and reaches a session the same way: over the
+ * mailbox that session's own registered process is (or is not) listening on. A session that is not
+ * reachable that way is reported as such, never silently treated as delivered.
  */
 export async function crackSession(sessionId: string, payload: string): Promise<CrackOutcome> {
-  const delivery = await tryLoadDelivery();
-  if (!delivery) {
-    return { ok: false, route: null, reason: 'delivery-package-not-built' };
-  }
-  const resolved = delivery.resolveTarget(sessionId);
-  if (!resolved.ok) {
-    return { ok: false, route: null, reason: resolved.reason };
-  }
-  const full = (await import('@agent-whip/delivery')) as unknown as {
-    deliverWithFallback: (
-      target: { record: SessionRecord; bracketedPaste: boolean },
-      payload: string,
-      routes: unknown[],
-      opts?: { allowInterrupting?: boolean },
-    ) => Promise<{ ok: boolean; route: string | null; reason?: string }>;
-    noopRoute: unknown;
+  const outcome = await crackViaMailbox(sessionId, payload);
+  return {
+    ok: outcome.ok,
+    route: outcome.ok ? outcome.route : outcome.route,
+    reason: outcome.ok ? null : outcome.reason,
   };
-  const target = { record: resolved.record, bracketedPaste: false };
-  const result = await full.deliverWithFallback(target, payload, [full.noopRoute], { allowInterrupting: false });
-  return { ok: result.ok, route: result.route, reason: result.ok ? null : (result.reason ?? null) };
 }

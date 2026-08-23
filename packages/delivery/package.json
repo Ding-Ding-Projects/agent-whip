@@ -9,7 +9,7 @@
   "files": ["dist"],
   "scripts": {
     "build": "tsc -b",
-    "test": "node --test --experimental-strip-types src/*.test.ts"
+    "test": "node --test --experimental-strip-types src/*.test.ts src/transports/*.test.ts"
   },
   "dependencies": {
     "@agent-whip/paste-frame": "0.1.0"

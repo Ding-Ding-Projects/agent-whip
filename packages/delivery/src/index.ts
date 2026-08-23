@@ -31,3 +31,6 @@ export { deliverWithFallback, ptyWriteRoute, noopRoute } from './routes.js';
 
 export type { CrackAttempt, AuditLine, AuditLogOptions } from './audit.js';
 export { recordCrackAttempt, payloadIdentity, auditLogPath } from './audit.js';
+
+export type { MailboxOptions, DeliveryServerHandle } from './transports/mailbox-route.js';
+export { startSessionDeliveryServer, mailboxDeliveryRoute } from './transports/mailbox-route.js';

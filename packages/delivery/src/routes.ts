@@ -103,6 +103,11 @@ export const noopRoute: DeliveryRoute = {
   },
 };
 
+// The real, shipped non-interrupting route lives in ./transports/mailbox-route.ts
+// (`mailboxDeliveryRoute`). It is built on the same `PtyWriter`/`DeliveryRoute` shapes declared
+// here -- see that file for why filesystem IPC was chosen over a socket/named pipe (this
+// package's privacy contract forbids `node:net`).
+//
 // EXTENSION POINT, deliberately not implemented in this pass: a route that first sends an
 // interrupt (e.g. Ctrl-C) to reclaim a busy foreground process before delivering the payload.
 // Such a route MUST set `interrupts: true`, which means `deliverWithFallback` will never select it

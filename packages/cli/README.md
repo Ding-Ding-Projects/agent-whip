@@ -53,11 +53,13 @@ CLI. See `@agent-whip/core`'s documentation for the exact JSON schema.
 
 ## Delivery routes
 
-`@agent-whip/delivery` has not yet published a route layer (only the session registry
-exists at the time this package was written — see `src/registry-bridge.ts` and
-`src/delivery-shim.ts` for the exact TODOs). Until a real route is wired in, non-dry-run
-`crack` refuses with reason `no-route`. This is the honest current state, not a bug: nothing
-in this CLI will silently "deliver" by doing nothing.
+A real, non-dry-run `crack` delivers through `@agent-whip/delivery`'s filesystem-mailbox
+transport (`mailboxDeliveryRoute`, see `src/delivery-shim.ts`): the target session runs a
+tiny listener keyed by its own session id and registration nonce, and this CLI (a separate,
+short-lived process) drops a request and waits for a confirmed response before ever
+reporting success. A session that has not started that listener, or that does not confirm
+the delivery within the ack window, is refused (`no-route` or `all-routes-failed`) — never
+silently treated as delivered.
 
 ## Development
 

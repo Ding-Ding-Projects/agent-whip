@@ -7,7 +7,7 @@ import {
   type ProfileState,
   type Tier,
 } from '@agent-whip/core';
-import { deliverWithFallback, noopRoute, type DeliveryRoute } from './delivery-shim.js';
+import { deliverWithFallback, noopRoute, realRoutes, type DeliveryRoute } from './delivery-shim.js';
 import { describePayload } from './identity.js';
 import {
   registerSession,
@@ -54,7 +54,7 @@ export const realDeps: Deps = {
   loadProfile,
   clearProfileCache,
   recordCrack,
-  routes: [],
+  routes: realRoutes,
   now: () => Date.now(),
 };
 

@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Crack tiers — agent-whip</title>
+<meta name="description" content="What a single vs double crack delivers, and why there is no confirmation prompt on either tier.">
+<link rel="stylesheet" href="../css/app.css">
+</head>
+<body>
+<div class="app-shell" data-dock="left">
+  <nav class="tab-strip" role="tablist" aria-label="Site navigation" aria-orientation="vertical">
+    <div class="tab-strip__brand"><span class="whip">agent-whip</span></div>
+    <div class="tab-strip__dock-controls" role="group" aria-label="Dock tab strip to edge">
+      <button type="button" class="icon-btn" data-dock-btn="left" title="Dock left" aria-label="Dock tab strip left">L</button>
+      <button type="button" class="icon-btn" data-dock-btn="top" title="Dock top" aria-label="Dock tab strip top">T</button>
+      <button type="button" class="icon-btn" data-dock-btn="right" title="Dock right" aria-label="Dock tab strip right">R</button>
+      <button type="button" class="icon-btn" data-dock-btn="bottom" title="Dock bottom" aria-label="Dock tab strip bottom">B</button>
+    </div>
+    <a class="tab" role="tab" aria-selected="false" href="../index.html"><span class="tab__icon" aria-hidden="true">H</span><span class="tab__label">Home</span></a>
+    <a class="tab" role="tab" aria-selected="false" href="../docs/index.html"><span class="tab__icon" aria-hidden="true">D</span><span class="tab__label">Docs</span></a>
+    <a class="tab" role="tab" aria-selected="true" href="../docs/crack-tiers.html"><span class="tab__icon" aria-hidden="true">1</span><span class="tab__label">Crack tiers</span></a>
+    <a class="tab" role="tab" aria-selected="false" href="../docs/payload-profiles.html"><span class="tab__icon" aria-hidden="true">2</span><span class="tab__label">Payload profiles</span></a>
+    <a class="tab" role="tab" aria-selected="false" href="../docs/delivery-routes.html"><span class="tab__icon" aria-hidden="true">3</span><span class="tab__label">Delivery routes</span></a>
+    <a class="tab" role="tab" aria-selected="false" href="../docs/privacy.html"><span class="tab__icon" aria-hidden="true">4</span><span class="tab__label">Privacy</span></a>
+    <a class="tab" role="tab" aria-selected="false" href="../settings.html"><span class="tab__icon" aria-hidden="true">S</span><span class="tab__label">Settings</span></a>
+  </nav>
+  <main id="main-content">
+    <span class="eyebrow">Documentation</span>
+    <h1>Crack tiers</h1>
+
+    <section id="the-two-tiers">
+      <h2>The two tiers</h2>
+      <table>
+        <thead><tr><th>Crack</th><th>Timing</th><th>Delivers</th><th>Effect</th></tr></thead>
+        <tbody>
+          <tr><td>Single crack</td><td>one trigger</td><td><code>tier1</code></td><td>Switch the session to a faster operating mode.</td></tr>
+          <tr><td>Double crack</td><td>two triggers within ~2 seconds</td><td><code>tier2</code></td><td>Speed mode <strong>plus</strong> cleanup authorization.</td></tr>
+        </tbody>
+      </table>
+      <p>A double crack is detected purely by timing between two single-crack events —
+      there's no separate "double crack" gesture to learn. Crack it, crack it again
+      inside the window, and the second delivery carries <code>tier2</code> instead of a
+      repeated <code>tier1</code>.</p>
+    </section>
+
+    <section id="no-confirmation">
+      <h2>There is no confirmation prompt — on either tier</h2>
+      <p>This is a deliberate, documented decision, not an oversight:</p>
+      <ul>
+        <li><strong>agent-whip's job ends at delivering text.</strong> It writes a short
+        phrase into a live session. It does not, and structurally cannot, know what the
+        receiving agent will do with that phrase — that's entirely up to the agent's own
+        instructions and safety rules.</li>
+        <li><strong>A confirmation prompt in agent-whip would be theater.</strong> The
+        tool has no way to evaluate whether "clean up merged branches" is currently safe
+        to authorize — that judgment belongs to the agent that receives the phrase and
+        to whatever guardrails govern its destructive actions.</li>
+        <li><strong>The double-crack tier itself is the intentional friction.</strong>
+        Requiring two deliberate, closely-timed cracks — rather than one crack plus a
+        dialog click — keeps "grant cleanup authorization" distinct from an idle mouse
+        click landing on the wrong button, without adding a dismissal step to every
+        ordinary crack.</li>
+      </ul>
+    </section>
+
+    <section id="crack-log">
+      <h2>The mitigation: a local, append-only crack log</h2>
+      <p>Every crack — successful or refused — is recorded locally:</p>
+      <ul>
+        <li>timestamp</li>
+        <li>tier (1 or 2)</li>
+        <li>delivery route attempted (pty, hook channel, etc. — see <a href="delivery-routes.html">Delivery routes</a>)</li>
+        <li>outcome (delivered / refused, and why, if refused)</li>
+      </ul>
+      <p>The log <strong>never contains the payload text itself</strong> — see
+      <a href="privacy.html">Privacy</a>. It exists so "I cracked and didn't mean to" has
+      an answer: look at the log, see exactly what was sent, when, and to which target.
+      It's an audit trail, not a gate — nothing waits on it before delivering.</p>
+    </section>
+
+    <section aria-labelledby="suggested-h">
+      <h2 id="suggested-h">Suggested articles</h2>
+      <ul class="suggested-list">
+        <li><a href="payload-profiles.html">Payload profiles — where tier1/tier2 text actually comes from</a></li>
+        <li><a href="delivery-routes.html">Delivery routes — how a resolved payload reaches a session, and the targeting contract</a></li>
+      </ul>
+    </section>
+  </main>
+</div>
+<script>
+window.AW_SITE_INDEX = [
+  {label:"Home", kind:"page", href:"../index.html", keywords:"landing download install"},
+  {label:"Why this is not an interrupt", kind:"section", href:"../index.html#not-interrupt-h", keywords:"interrupt ctrl-c openwhip"},
+  {label:"Two tiers, no confirmation prompt", kind:"section", href:"../index.html#tiers-h", keywords:"single double crack"},
+  {label:"Nothing leaves the machine", kind:"section", href:"../index.html#privacy-h", keywords:"network telemetry"},
+  {label:"Docs hub", kind:"page", href:"../docs/index.html", keywords:"documentation articles"},
+  {label:"Crack tiers", kind:"page", href:"../docs/crack-tiers.html", keywords:"tier1 tier2 confirmation"},
+  {label:"Payload profiles", kind:"page", href:"../docs/payload-profiles.html", keywords:"profile.json schema defaults"},
+  {label:"Delivery routes", kind:"page", href:"../docs/delivery-routes.html", keywords:"pty injection codex hook targeting"},
+  {label:"Privacy", kind:"page", href:"../docs/privacy.html", keywords:"network logging guards"},
+  {label:"Settings", kind:"page", href:"../settings.html", keywords:"theme dark light density accent colour"},
+  {label:"Setting: Appearance (theme, density)", kind:"setting", href:"../settings.html#setting-theme", keywords:"theme dark light system density"},
+  {label:"Setting: Accent colour", kind:"setting", href:"../settings.html#setting-accent", keywords:"colour picker hue"},
+  {label:"Setting: Notifications", kind:"setting", href:"../settings.html#setting-notifications", keywords:"toast test"},
+  {label:"Setting: Tab strip docking", kind:"setting", href:"../settings.html#setting-tabdock", keywords:"dock left right top bottom"}
+];
+</script>
+<script src="../js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Payload profiles — agent-whip</title>
+<meta name="description" content="Where tier1 and tier2 text comes from, the shipped neutral defaults, and the local profile override schema.">
+<link rel="stylesheet" href="../css/app.css">
+</head>
+<body>
+<div class="app-shell" data-dock="left">
+  <nav class="tab-strip" role="tablist" aria-label="Site navigation" aria-orientation="vertical">
+    <div class="tab-strip__brand"><span class="whip">agent-whip</span></div>
+    <div class="tab-strip__dock-controls" role="group" aria-label="Dock tab strip to edge">
+      <button type="button" class="icon-btn" data-dock-btn="left" title="Dock left" aria-label="Dock tab strip left">L</button>
+      <button type="button" class="icon-btn" data-dock-btn="top" title="Dock top" aria-label="Dock tab strip top">T</button>
+      <button type="button" class="icon-btn" data-dock-btn="right" title="Dock right" aria-label="Dock tab strip right">R</button>
+      <button type="button" class="icon-btn" data-dock-btn="bottom" title="Dock bottom" aria-label="Dock tab strip bottom">B</button>
+    </div>
+    <a class="tab" role="tab" aria-selected="false" href="../index.html"><span class="tab__icon" aria-hidden="true">H</span><span class="tab__label">Home</span></a>
+    <a class="tab" role="tab" aria-selected="false" href="../docs/index.html"><span class="tab__icon" aria-hidden="true">D</span><span class="tab__label">Docs</span></a>
+    <a class="tab" role="tab" aria-selected="false" href="../docs/crack-tiers.html"><span class="tab__icon" aria-hidden="true">1</span><span class="tab__label">Crack tiers</span></a>
+    <a class="tab" role="tab" aria-selected="true" href="../docs/payload-profiles.html"><span class="tab__icon" aria-hidden="true">2</span><span class="tab__label">Payload profiles</span></a>
+    <a class="tab" role="tab" aria-selected="false" href="../docs/delivery-routes.html"><span class="tab__icon" aria-hidden="true">3</span><span class="tab__label">Delivery routes</span></a>
+    <a class="tab" role="tab" aria-selected="false" href="../docs/privacy.html"><span class="tab__icon" aria-hidden="true">4</span><span class="tab__label">Privacy</span></a>
+    <a class="tab" role="tab" aria-selected="false" href="../settings.html"><span class="tab__icon" aria-hidden="true">S</span><span class="tab__label">Settings</span></a>
+  </nav>
+  <main id="main-content">
+    <span class="eyebrow">Documentation</span>
+    <h1>Payload profiles</h1>
+
+    <section id="what-it-is">
+      <h2>What it is</h2>
+      <p>A payload profile resolves the exact text agent-whip delivers on a crack. It has
+      exactly two string fields:</p>
+      <table>
+        <thead><tr><th>Field</th><th>Meaning</th></tr></thead>
+        <tbody>
+          <tr><td><code>tier1</code></td><td>Delivered on a single crack — switch to speed mode.</td></tr>
+          <tr><td><code>tier2</code></td><td>Delivered on a double crack — speed mode + cleanup authorization.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="shipped-defaults">
+      <h2>The shipped defaults</h2>
+      <p>This repository ships <strong>neutral English defaults only</strong>, because it
+      is public and the maintainer's real trigger phrases are private:</p>
+      <pre><code>{
+  "version": 1,
+  "tier1": "continue at full speed",
+  "tier2": "continue at full speed, then clean up merged branches"
+}</code></pre>
+      <p>These are real, usable defaults — not placeholders — for anyone who clones this
+      repository and never sets up a local profile. They'll do exactly what the field
+      names say.</p>
+    </section>
+
+    <section id="local-override">
+      <h2>Loading a local override</h2>
+      <p>At startup, agent-whip looks for <code>~/.agent-whip/profile.json</code>. If it
+      exists and validates against the schema below, its <code>tier1</code>/<code>tier2</code>
+      values replace the shipped defaults for the rest of the session. If it doesn't
+      exist, or fails validation, the shipped defaults are used — silently for "doesn't
+      exist" (the normal no-local-profile case), loudly (a clear error naming what's
+      wrong) for "exists but is malformed."</p>
+      <p>This file is never read from, or written into, this repository. It lives
+      outside the clone entirely, in the user's home directory.</p>
+    </section>
+
+    <section id="schema">
+      <h2>The schema</h2>
+      <ul>
+        <li><code>version</code>: integer, currently must be <code>1</code>.</li>
+        <li><code>tier1</code>: non-empty string, bounded length (short phrases only — this is a trigger, not a script).</li>
+        <li><code>tier2</code>: non-empty string, same bound.</li>
+        <li>No other top-level fields are accepted; an unknown field fails validation rather than being silently ignored.</li>
+      </ul>
+      <p>A profile that fails validation <strong>never partially applies</strong> —
+      either both fields load from it, or neither does and the defaults are used for
+      both.</p>
+      <div class="unavailable-note">Real trigger phrases are never shown anywhere on
+      this site. Where an example would normally show text, this documentation uses
+      the hash-and-length form instead, e.g. <span class="hash-tag">sha256:26e9f54e24fa (22 chars)</span>.</div>
+    </section>
+
+    <section id="why-privacy-mechanism">
+      <h2>Why this is the whole privacy mechanism</h2>
+      <p>Every guard in <code>scripts/</code> that touches privacy exists to protect this
+      boundary: real phrases live only in a file outside the repository, loaded once at
+      startup, and never logged. See <a href="privacy.html">Privacy</a> for the full list
+      of build-time checks.</p>
+    </section>
+
+    <section aria-labelledby="suggested-h">
+      <h2 id="suggested-h">Suggested articles</h2>
+      <ul class="suggested-list">
+        <li><a href="crack-tiers.html">Crack tiers — what tier1/tier2 actually trigger</a></li>
+        <li><a href="privacy.html">Privacy — the guards that keep this boundary real</a></li>
+        <li><a href="delivery-routes.html">Delivery routes — what happens to a resolved payload next</a></li>
+      </ul>
+    </section>
+  </main>
+</div>
+<script>
+window.AW_SITE_INDEX = [
+  {label:"Home", kind:"page", href:"../index.html", keywords:"landing download install"},
+  {label:"Why this is not an interrupt", kind:"section", href:"../index.html#not-interrupt-h", keywords:"interrupt ctrl-c openwhip"},
+  {label:"Two tiers, no confirmation prompt", kind:"section", href:"../index.html#tiers-h", keywords:"single double crack"},
+  {label:"Nothing leaves the machine", kind:"section", href:"../index.html#privacy-h", keywords:"network telemetry"},
+  {label:"Docs hub", kind:"page", href:"../docs/index.html", keywords:"documentation articles"},
+  {label:"Crack tiers", kind:"page", href:"../docs/crack-tiers.html", keywords:"tier1 tier2 confirmation"},
+  {label:"Payload profiles", kind:"page", href:"../docs/payload-profiles.html", keywords:"profile.json schema defaults"},
+  {label:"Delivery routes", kind:"page", href:"../docs/delivery-routes.html", keywords:"pty injection codex hook targeting"},
+  {label:"Privacy", kind:"page", href:"../docs/privacy.html", keywords:"network logging guards"},
+  {label:"Settings", kind:"page", href:"../settings.html", keywords:"theme dark light density accent colour"},
+  {label:"Setting: Appearance (theme, density)", kind:"setting", href:"../settings.html#setting-theme", keywords:"theme dark light system density"},
+  {label:"Setting: Accent colour", kind:"setting", href:"../settings.html#setting-accent", keywords:"colour picker hue"},
+  {label:"Setting: Notifications", kind:"setting", href:"../settings.html#setting-notifications", keywords:"toast test"},
+  {label:"Setting: Tab strip docking", kind:"setting", href:"../settings.html#setting-tabdock", keywords:"dock left right top bottom"}
+];
+</script>
+<script src="../js/app.js"></script>
+</body>
+</html>

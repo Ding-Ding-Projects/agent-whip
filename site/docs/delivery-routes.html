@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Delivery routes — agent-whip</title>
+<meta name="description" content="Pty injection, the Codex hook channel, and the strict window-targeting contract that refuses to guess.">
+<link rel="stylesheet" href="../css/app.css">
+</head>
+<body>
+<div class="app-shell" data-dock="left">
+  <nav class="tab-strip" role="tablist" aria-label="Site navigation" aria-orientation="vertical">
+    <div class="tab-strip__brand"><span class="whip">agent-whip</span></div>
+    <div class="tab-strip__dock-controls" role="group" aria-label="Dock tab strip to edge">
+      <button type="button" class="icon-btn" data-dock-btn="left" title="Dock left" aria-label="Dock tab strip left">L</button>
+      <button type="button" class="icon-btn" data-dock-btn="top" title="Dock top" aria-label="Dock tab strip top">T</button>
+      <button type="button" class="icon-btn" data-dock-btn="right" title="Dock right" aria-label="Dock tab strip right">R</button>
+      <button type="button" class="icon-btn" data-dock-btn="bottom" title="Dock bottom" aria-label="Dock tab strip bottom">B</button>
+    </div>
+    <a class="tab" role="tab" aria-selected="false" href="../index.html"><span class="tab__icon" aria-hidden="true">H</span><span class="tab__label">Home</span></a>
+    <a class="tab" role="tab" aria-selected="false" href="../docs/index.html"><span class="tab__icon" aria-hidden="true">D</span><span class="tab__label">Docs</span></a>
+    <a class="tab" role="tab" aria-selected="false" href="../docs/crack-tiers.html"><span class="tab__icon" aria-hidden="true">1</span><span class="tab__label">Crack tiers</span></a>
+    <a class="tab" role="tab" aria-selected="false" href="../docs/payload-profiles.html"><span class="tab__icon" aria-hidden="true">2</span><span class="tab__label">Payload profiles</span></a>
+    <a class="tab" role="tab" aria-selected="true" href="../docs/delivery-routes.html"><span class="tab__icon" aria-hidden="true">3</span><span class="tab__label">Delivery routes</span></a>
+    <a class="tab" role="tab" aria-selected="false" href="../docs/privacy.html"><span class="tab__icon" aria-hidden="true">4</span><span class="tab__label">Privacy</span></a>
+    <a class="tab" role="tab" aria-selected="false" href="../settings.html"><span class="tab__icon" aria-hidden="true">S</span><span class="tab__label">Settings</span></a>
+  </nav>
+  <main id="main-content">
+    <span class="eyebrow">Documentation</span>
+    <h1>Delivery routes</h1>
+    <p>A crack has to reach a real target — a terminal, a window, or a hook channel —
+    and agent-whip supports more than one way to get there. Every route shares the same
+    validated, sanitized payload; what differs is the mechanism of delivery.</p>
+
+    <section id="pty-injection">
+      <h2>Pty injection</h2>
+      <p>The most general route: write the wrapped, bracketed-paste payload directly
+      into a target pseudo-terminal's input stream. Works against any shell or TUI that
+      honors bracketed paste — effectively all of them on a modern terminal.</p>
+    </section>
+
+    <section id="codex-hook">
+      <h2>Codex hook channel</h2>
+      <p>Where the target is a Codex CLI session and a hook/session channel is
+      available, agent-whip prefers writing into that channel directly over simulating a
+      paste. This is a more precise delivery mechanism when available; pty injection
+      remains the documented fallback for everything else.</p>
+    </section>
+
+    <section id="dispatcher-gui">
+      <h2>Standalone dispatcher GUI (planned)</h2>
+      <p>A minimal GUI for picking a target session visually and cracking it — see the
+      project roadmap. It uses the same window-targeting contract below; it doesn't get
+      a shortcut.</p>
+    </section>
+
+    <section id="targeting-contract">
+      <h2>The window-targeting contract</h2>
+      <div class="warn-banner">
+        <span>Delivering a crack to the wrong window isn't just wasted effort — it's a
+        privacy and correctness hazard. A payload landing in an unrelated application
+        because a targeting heuristic guessed wrong is the kind of bug that erodes trust
+        in the whole tool.</span>
+      </div>
+      <p>A target window is resolved by <strong>all three</strong> of:</p>
+      <ol>
+        <li>window <strong>class</strong> matches the expected target;</li>
+        <li>window <strong>title is non-empty</strong> and matches the expected pattern;</li>
+        <li>window <strong>width and height are both non-zero</strong>.</li>
+      </ol>
+      <p>If zero windows match, or <strong>more than one</strong> matches, delivery is
+      <strong>refused</strong> — not attempted against "the first one" or "whichever
+      seems most likely." The refusal names exactly what was found (how many
+      candidates, their titles/classes) so the operator can see why and correct it.</p>
+    </section>
+
+    <section aria-labelledby="suggested-h">
+      <h2 id="suggested-h">Suggested articles</h2>
+      <ul class="suggested-list">
+        <li><a href="crack-tiers.html">Crack tiers — what gets delivered and when</a></li>
+        <li><a href="privacy.html">Privacy — why every route stays local by construction</a></li>
+        <li><a href="payload-profiles.html">Payload profiles — where the delivered text comes from</a></li>
+      </ul>
+    </section>
+  </main>
+</div>
+<script>
+window.AW_SITE_INDEX = [
+  {label:"Home", kind:"page", href:"../index.html", keywords:"landing download install"},
+  {label:"Why this is not an interrupt", kind:"section", href:"../index.html#not-interrupt-h", keywords:"interrupt ctrl-c openwhip"},
+  {label:"Two tiers, no confirmation prompt", kind:"section", href:"../index.html#tiers-h", keywords:"single double crack"},
+  {label:"Nothing leaves the machine", kind:"section", href:"../index.html#privacy-h", keywords:"network telemetry"},
+  {label:"Docs hub", kind:"page", href:"../docs/index.html", keywords:"documentation articles"},
+  {label:"Crack tiers", kind:"page", href:"../docs/crack-tiers.html", keywords:"tier1 tier2 confirmation"},
+  {label:"Payload profiles", kind:"page", href:"../docs/payload-profiles.html", keywords:"profile.json schema defaults"},
+  {label:"Delivery routes", kind:"page", href:"../docs/delivery-routes.html", keywords:"pty injection codex hook targeting"},
+  {label:"Privacy", kind:"page", href:"../docs/privacy.html", keywords:"network logging guards"},
+  {label:"Settings", kind:"page", href:"../settings.html", keywords:"theme dark light density accent colour"},
+  {label:"Setting: Appearance (theme, density)", kind:"setting", href:"../settings.html#setting-theme", keywords:"theme dark light system density"},
+  {label:"Setting: Accent colour", kind:"setting", href:"../settings.html#setting-accent", keywords:"colour picker hue"},
+  {label:"Setting: Notifications", kind:"setting", href:"../settings.html#setting-notifications", keywords:"toast test"},
+  {label:"Setting: Tab strip docking", kind:"setting", href:"../settings.html#setting-tabdock", keywords:"dock left right top bottom"}
+];
+</script>
+<script src="../js/app.js"></script>
+</body>
+</html>

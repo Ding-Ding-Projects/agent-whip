@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Documentation — agent-whip</title>
+<meta name="description" content="Every agent-whip feature article: crack tiers, payload profiles, delivery routes, privacy.">
+<link rel="stylesheet" href="../css/app.css">
+</head>
+<body>
+<div class="app-shell" data-dock="left">
+  <nav class="tab-strip" role="tablist" aria-label="Site navigation" aria-orientation="vertical">
+    <div class="tab-strip__brand"><span class="whip">agent-whip</span></div>
+    <div class="tab-strip__dock-controls" role="group" aria-label="Dock tab strip to edge">
+      <button type="button" class="icon-btn" data-dock-btn="left" title="Dock left" aria-label="Dock tab strip left">L</button>
+      <button type="button" class="icon-btn" data-dock-btn="top" title="Dock top" aria-label="Dock tab strip top">T</button>
+      <button type="button" class="icon-btn" data-dock-btn="right" title="Dock right" aria-label="Dock tab strip right">R</button>
+      <button type="button" class="icon-btn" data-dock-btn="bottom" title="Dock bottom" aria-label="Dock tab strip bottom">B</button>
+    </div>
+    <a class="tab" role="tab" aria-selected="false" href="../index.html"><span class="tab__icon" aria-hidden="true">H</span><span class="tab__label">Home</span></a>
+    <a class="tab" role="tab" aria-selected="true" href="../docs/index.html"><span class="tab__icon" aria-hidden="true">D</span><span class="tab__label">Docs</span></a>
+    <a class="tab" role="tab" aria-selected="false" href="../docs/crack-tiers.html"><span class="tab__icon" aria-hidden="true">1</span><span class="tab__label">Crack tiers</span></a>
+    <a class="tab" role="tab" aria-selected="false" href="../docs/payload-profiles.html"><span class="tab__icon" aria-hidden="true">2</span><span class="tab__label">Payload profiles</span></a>
+    <a class="tab" role="tab" aria-selected="false" href="../docs/delivery-routes.html"><span class="tab__icon" aria-hidden="true">3</span><span class="tab__label">Delivery routes</span></a>
+    <a class="tab" role="tab" aria-selected="false" href="../docs/privacy.html"><span class="tab__icon" aria-hidden="true">4</span><span class="tab__label">Privacy</span></a>
+    <a class="tab" role="tab" aria-selected="false" href="../settings.html"><span class="tab__icon" aria-hidden="true">S</span><span class="tab__label">Settings</span></a>
+  </nav>
+  <main id="main-content">
+    <section class="hero">
+      <span class="eyebrow">Documentation</span>
+      <h1>Every feature, one article each</h1>
+      <p class="lede">Search below, or browse the four articles directly. Each article
+      ends with suggested reading so you're never dropped at a dead end.</p>
+      <div class="search-field" role="search">
+        <label for="docs-search" class="visually-hidden">Search documentation</label>
+        <input type="search" id="docs-search" placeholder="Search articles…" autocomplete="off">
+      </div>
+      <ul class="search-results" id="docs-search-results" aria-live="polite"></ul>
+    </section>
+
+    <section>
+      <div class="card-grid">
+        <div class="card"><h3><a href="crack-tiers.html">Crack tiers</a></h3><p>The two tiers, why there's no confirmation prompt, and the local crack log.</p></div>
+        <div class="card"><h3><a href="payload-profiles.html">Payload profiles</a></h3><p>The shipped neutral defaults, the local override file, and its schema.</p></div>
+        <div class="card"><h3><a href="delivery-routes.html">Delivery routes</a></h3><p>Pty injection, the Codex hook channel, and the strict window-targeting contract.</p></div>
+        <div class="card"><h3><a href="privacy.html">Privacy</a></h3><p>No network access, no payload logging, and the build-time guards that enforce both.</p></div>
+      </div>
+    </section>
+  </main>
+</div>
+<script>
+window.AW_DOCS_CONTENT = [
+  {href:"crack-tiers.html", title:"Crack tiers", text:"single crack tier1 double crack tier2 confirmation prompt crack log timestamp outcome"},
+  {href:"payload-profiles.html", title:"Payload profiles", text:"payload profile tier1 tier2 shipped neutral defaults local override profile.json schema version"},
+  {href:"delivery-routes.html", title:"Delivery routes", text:"pty injection bracketed paste codex hook channel window targeting contract class title width height refused"},
+  {href:"privacy.html", title:"Privacy", text:"no network access no payload logging profile file local-only no raw control bytes check-no-network check-public-hygiene"}
+];
+(function () {
+  var results = document.getElementById("docs-search-results");
+  function render(list) {
+    results.innerHTML = "";
+    list.forEach(function (item) {
+      var li = document.createElement("li");
+      var a = document.createElement("a");
+      a.href = item.href; a.textContent = item.title;
+      li.appendChild(a); results.appendChild(li);
+    });
+  }
+  function plainFilter(q) {
+    q = q.toLowerCase();
+    if (!q) return [];
+    return window.AW_DOCS_CONTENT.filter(function (d) { return d.title.toLowerCase().indexOf(q) !== -1 || d.text.indexOf(q) !== -1; });
+  }
+  function regexFilter(pattern, flags) {
+    try {
+      var re = new RegExp(pattern, flags);
+      return window.AW_DOCS_CONTENT.filter(function (d) { return re.test(d.title) || re.test(d.text); });
+    } catch (e) { return []; }
+  }
+  document.addEventListener("aw:search-ready", function (e) {
+    if (e.detail.id !== "docs-search") return;
+    e.detail.instance.onQueryChange = function (q, isRegex, flags) {
+      render(isRegex ? regexFilter(q, flags) : plainFilter(q));
+    };
+  });
+})();
+</script>
+
+<script>
+window.AW_SITE_INDEX = [
+  {label:"Home", kind:"page", href:"../index.html", keywords:"landing download install"},
+  {label:"Why this is not an interrupt", kind:"section", href:"../index.html#not-interrupt-h", keywords:"interrupt ctrl-c openwhip"},
+  {label:"Two tiers, no confirmation prompt", kind:"section", href:"../index.html#tiers-h", keywords:"single double crack"},
+  {label:"Nothing leaves the machine", kind:"section", href:"../index.html#privacy-h", keywords:"network telemetry"},
+  {label:"Docs hub", kind:"page", href:"../docs/index.html", keywords:"documentation articles"},
+  {label:"Crack tiers", kind:"page", href:"../docs/crack-tiers.html", keywords:"tier1 tier2 confirmation"},
+  {label:"Payload profiles", kind:"page", href:"../docs/payload-profiles.html", keywords:"profile.json schema defaults"},
+  {label:"Delivery routes", kind:"page", href:"../docs/delivery-routes.html", keywords:"pty injection codex hook targeting"},
+  {label:"Privacy", kind:"page", href:"../docs/privacy.html", keywords:"network logging guards"},
+  {label:"Settings", kind:"page", href:"../settings.html", keywords:"theme dark light density accent colour"},
+  {label:"Setting: Appearance (theme, density)", kind:"setting", href:"../settings.html#setting-theme", keywords:"theme dark light system density"},
+  {label:"Setting: Accent colour", kind:"setting", href:"../settings.html#setting-accent", keywords:"colour picker hue"},
+  {label:"Setting: Notifications", kind:"setting", href:"../settings.html#setting-notifications", keywords:"toast test"},
+  {label:"Setting: Tab strip docking", kind:"setting", href:"../settings.html#setting-tabdock", keywords:"dock left right top bottom"}
+];
+</script>
+<script src="../js/app.js"></script>
+</body>
+</html>

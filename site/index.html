@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>agent-whip — crack a whip at your coding agent</title>
+<meta name="description" content="agent-whip switches a running AI coding agent session into a faster operating mode by delivering a trigger phrase — never an interrupt.">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<div class="app-shell" data-dock="left">
+  <nav class="tab-strip" role="tablist" aria-label="Site navigation" aria-orientation="vertical">
+    <div class="tab-strip__brand"><span class="whip">agent-whip</span></div>
+    <div class="tab-strip__dock-controls" role="group" aria-label="Dock tab strip to edge">
+      <button type="button" class="icon-btn" data-dock-btn="left" title="Dock left" aria-label="Dock tab strip left">L</button>
+      <button type="button" class="icon-btn" data-dock-btn="top" title="Dock top" aria-label="Dock tab strip top">T</button>
+      <button type="button" class="icon-btn" data-dock-btn="right" title="Dock right" aria-label="Dock tab strip right">R</button>
+      <button type="button" class="icon-btn" data-dock-btn="bottom" title="Dock bottom" aria-label="Dock tab strip bottom">B</button>
+    </div>
+    <a class="tab" role="tab" aria-selected="true" href="index.html"><span class="tab__icon" aria-hidden="true">H</span><span class="tab__label">Home</span></a>
+    <a class="tab" role="tab" aria-selected="false" href="docs/index.html"><span class="tab__icon" aria-hidden="true">D</span><span class="tab__label">Docs</span></a>
+    <a class="tab" role="tab" aria-selected="false" href="docs/crack-tiers.html"><span class="tab__icon" aria-hidden="true">1</span><span class="tab__label">Crack tiers</span></a>
+    <a class="tab" role="tab" aria-selected="false" href="docs/payload-profiles.html"><span class="tab__icon" aria-hidden="true">2</span><span class="tab__label">Payload profiles</span></a>
+    <a class="tab" role="tab" aria-selected="false" href="docs/delivery-routes.html"><span class="tab__icon" aria-hidden="true">3</span><span class="tab__label">Delivery routes</span></a>
+    <a class="tab" role="tab" aria-selected="false" href="docs/privacy.html"><span class="tab__icon" aria-hidden="true">4</span><span class="tab__label">Privacy</span></a>
+    <a class="tab" role="tab" aria-selected="false" href="settings.html"><span class="tab__icon" aria-hidden="true">S</span><span class="tab__label">Settings</span></a>
+  </nav>
+  <main id="main-content">
+    <section class="hero">
+      <span class="eyebrow">v0.1.0 · Classic Har Gow · 蝦餃</span>
+      <h1>Crack a whip at your coding agent.</h1>
+      <p class="lede">agent-whip switches a running AI coding agent session into a faster
+      operating mode by delivering a short trigger phrase into it — never by
+      interrupting it. A mode switch, not a nag.</p>
+      <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:20px;">
+        <a class="btn" href="https://github.com/Ding-Ding-Projects/agent-whip/releases/download/v0.1.0/agent-whip-Setup-0.1.0.exe">
+          Download v0.1.0 for Windows
+        </a>
+        <a class="btn outlined" href="https://github.com/Ding-Ding-Projects/agent-whip/releases/tag/v0.1.0">
+          View the release
+        </a>
+      </div>
+      <div class="warn-banner" role="note">
+        <strong style="flex-shrink:0;">Unsigned installer.</strong>
+        <span>agent-whip does not use code signing, on principle — see
+        <a href="docs/privacy.html">Privacy</a>. Windows SmartScreen will warn about an
+        unrecognized publisher before you can run it. That warning is expected, not a
+        sign anything is wrong.</span>
+      </div>
+    </section>
+
+    <section aria-labelledby="not-interrupt-h">
+      <h2 id="not-interrupt-h">Why this is not an interrupt</h2>
+      <p>agent-whip's ancestor is
+      <a href="https://github.com/GitFrog1111/OpenWhip">OpenWhip</a> — a tray app you
+      click, which drops a whip overlay and sends <code>Ctrl-C</code> plus one of five
+      encouraging messages. It's a joke, and a good one. We mean the credit warmly:
+      agent-whip exists because the bit was too good not to build properly.</p>
+      <p>But an interrupt-based whip has a real problem hiding under the joke: it makes
+      the agent <em>slower</em>. <code>Ctrl-C</code> discards whatever the agent was
+      mid-turn on, so the "motivational" message that follows starts a brand new turn
+      from scratch rather than resuming anything. Every crack costs the agent its
+      entire in-flight response.</p>
+      <p>agent-whip inverts the payload. A crack injects a short trigger phrase into the
+      live session, timed and framed so the agent reads it as ordinary input — not a
+      signal to abandon its current turn. No discarded turn, no interrupt signal, no
+      work thrown away.</p>
+    </section>
+
+    <section aria-labelledby="tiers-h">
+      <h2 id="tiers-h">Two tiers, no confirmation prompt</h2>
+      <div class="card-grid">
+        <div class="card">
+          <h3>Single crack — tier 1</h3>
+          <p>One trigger. Switches the session to a faster operating mode.</p>
+        </div>
+        <div class="card">
+          <h3>Double crack — tier 2</h3>
+          <p>Two triggers within roughly two seconds. Speed mode, plus cleanup
+          authorization.</p>
+        </div>
+      </div>
+      <p>Read why there is deliberately no yes/no dialog on either tier in
+      <a href="docs/crack-tiers.html">Crack tiers</a> — the short version: agent-whip's
+      job ends at delivering text, so it has no way to judge whether an action is safe.
+      That judgment belongs to the receiving agent, not to a decoration in this tool.</p>
+    </section>
+
+    <section aria-labelledby="privacy-h">
+      <h2 id="privacy-h">Nothing leaves the machine</h2>
+      <p>No network access, no telemetry, and no real trigger phrases anywhere in this
+      repository or on this site. Payload text is never displayed — only its hash and
+      length, like <span class="hash-tag">sha256:26e9f54e24fa (22 chars)</span>. Full
+      detail in <a href="docs/privacy.html">Privacy</a>.</p>
+    </section>
+
+    <section aria-labelledby="explore-h">
+      <h2 id="explore-h">Explore the documentation</h2>
+      <div class="card-grid">
+        <div class="card"><h3><a href="docs/crack-tiers.html">Crack tiers</a></h3><p>What each tier delivers, and why there's no confirmation prompt.</p></div>
+        <div class="card"><h3><a href="docs/payload-profiles.html">Payload profiles</a></h3><p>Where tier1/tier2 text comes from, and how local overrides load.</p></div>
+        <div class="card"><h3><a href="docs/delivery-routes.html">Delivery routes</a></h3><p>Pty injection, the Codex hook channel, and the targeting contract.</p></div>
+        <div class="card"><h3><a href="docs/privacy.html">Privacy</a></h3><p>The build-time guards that keep agent-whip honest about all of the above.</p></div>
+      </div>
+    </section>
+
+    <footer class="site-footer">
+      <p>agent-whip is open source. Prior art and full credit: <a href="https://github.com/GitFrog1111/OpenWhip">OpenWhip</a> by GitFrog1111.
+      Press <span class="kbd">Ctrl</span>+<span class="kbd">Shift</span>+<span class="kbd">F</span> anywhere on this site to open the command palette.</p>
+    </footer>
+  </main>
+</div>
+<script>
+window.AW_SITE_INDEX = [
+  {label:"Home", kind:"page", href:"index.html", keywords:"landing download install"},
+  {label:"Why this is not an interrupt", kind:"section", href:"index.html#not-interrupt-h", keywords:"interrupt ctrl-c openwhip"},
+  {label:"Two tiers, no confirmation prompt", kind:"section", href:"index.html#tiers-h", keywords:"single double crack"},
+  {label:"Nothing leaves the machine", kind:"section", href:"index.html#privacy-h", keywords:"network telemetry"},
+  {label:"Docs hub", kind:"page", href:"docs/index.html", keywords:"documentation articles"},
+  {label:"Crack tiers", kind:"page", href:"docs/crack-tiers.html", keywords:"tier1 tier2 confirmation"},
+  {label:"Payload profiles", kind:"page", href:"docs/payload-profiles.html", keywords:"profile.json schema defaults"},
+  {label:"Delivery routes", kind:"page", href:"docs/delivery-routes.html", keywords:"pty injection codex hook targeting"},
+  {label:"Privacy", kind:"page", href:"docs/privacy.html", keywords:"network logging guards"},
+  {label:"Settings", kind:"page", href:"settings.html", keywords:"theme dark light density accent colour"},
+  {label:"Setting: Appearance (theme, density)", kind:"setting", href:"settings.html#setting-theme", keywords:"theme dark light system density"},
+  {label:"Setting: Accent colour", kind:"setting", href:"settings.html#setting-accent", keywords:"colour picker hue"},
+  {label:"Setting: Notifications", kind:"setting", href:"settings.html#setting-notifications", keywords:"toast test"},
+  {label:"Setting: Tab strip docking", kind:"setting", href:"settings.html#setting-tabdock", keywords:"dock left right top bottom"}
+];
+</script>
+<script src="js/app.js"></script>
+</body>
+</html>

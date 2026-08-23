@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Settings — agent-whip</title>
+<meta name="description" content="Theme, density, and accent colour for this documentation site.">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<div class="app-shell" data-dock="left">
+  <nav class="tab-strip" role="tablist" aria-label="Site navigation" aria-orientation="vertical">
+    <div class="tab-strip__brand"><span class="whip">agent-whip</span></div>
+    <div class="tab-strip__dock-controls" role="group" aria-label="Dock tab strip to edge">
+      <button type="button" class="icon-btn" data-dock-btn="left" title="Dock left" aria-label="Dock tab strip left">L</button>
+      <button type="button" class="icon-btn" data-dock-btn="top" title="Dock top" aria-label="Dock tab strip top">T</button>
+      <button type="button" class="icon-btn" data-dock-btn="right" title="Dock right" aria-label="Dock tab strip right">R</button>
+      <button type="button" class="icon-btn" data-dock-btn="bottom" title="Dock bottom" aria-label="Dock tab strip bottom">B</button>
+    </div>
+    <a class="tab" role="tab" aria-selected="false" href="index.html"><span class="tab__icon" aria-hidden="true">H</span><span class="tab__label">Home</span></a>
+    <a class="tab" role="tab" aria-selected="false" href="docs/index.html"><span class="tab__icon" aria-hidden="true">D</span><span class="tab__label">Docs</span></a>
+    <a class="tab" role="tab" aria-selected="false" href="docs/crack-tiers.html"><span class="tab__icon" aria-hidden="true">1</span><span class="tab__label">Crack tiers</span></a>
+    <a class="tab" role="tab" aria-selected="false" href="docs/payload-profiles.html"><span class="tab__icon" aria-hidden="true">2</span><span class="tab__label">Payload profiles</span></a>
+    <a class="tab" role="tab" aria-selected="false" href="docs/delivery-routes.html"><span class="tab__icon" aria-hidden="true">3</span><span class="tab__label">Delivery routes</span></a>
+    <a class="tab" role="tab" aria-selected="false" href="docs/privacy.html"><span class="tab__icon" aria-hidden="true">4</span><span class="tab__label">Privacy</span></a>
+    <a class="tab" role="tab" aria-selected="true" href="settings.html"><span class="tab__icon" aria-hidden="true">S</span><span class="tab__label">Settings</span></a>
+  </nav>
+  <main id="main-content">
+    <span class="eyebrow">Settings</span>
+    <h1>Site settings</h1>
+    <p>These preferences apply to this documentation site only. They're stored in your
+    browser's local storage — nothing here is sent anywhere.</p>
+
+    <div class="search-field" role="search" style="margin-bottom:24px;">
+      <label for="settings-search" class="visually-hidden">Search settings</label>
+      <input type="search" id="settings-search" placeholder="Search settings…" autocomplete="off">
+    </div>
+    <ul class="search-results" id="settings-search-results" aria-live="polite"></ul>
+
+    <section class="settings-section" id="setting-theme" data-setting-label="Theme light dark system appearance">
+      <h2>Appearance</h2>
+      <div class="setting-row">
+        <div><div class="label">Theme</div><div class="desc">Light, dark, or match your system.</div></div>
+        <div class="segmented" role="group" aria-label="Theme">
+          <button type="button" data-theme-btn="light" aria-pressed="false">Light</button>
+          <button type="button" data-theme-btn="dark" aria-pressed="false">Dark</button>
+          <button type="button" data-theme-btn="system" aria-pressed="true">System</button>
+        </div>
+      </div>
+      <div class="setting-row">
+        <div><div class="label">Density</div><div class="desc">Compact to comfortable spacing across tabs and lists.</div></div>
+        <input type="range" id="density-slider" min="0.8" max="1.2" step="0.05" value="1" aria-label="Density">
+      </div>
+    </section>
+
+    <section class="settings-section" id="setting-accent" data-setting-label="Accent colour infinite color picker hue saturation lightness contrast">
+      <h2>Accent colour</h2>
+      <p class="desc">An infinite colour picker: drag the field and hue slider, or type
+      exact values. This recolours the site's primary accent (buttons, selected tab, the
+      colour swatch below) in both light and dark.</p>
+      <div class="color-picker" data-color-picker></div>
+      <div style="margin-top:12px;">
+        <button type="button" class="btn outlined" id="reset-accent">Reset to default green</button>
+      </div>
+    </section>
+
+    <section class="settings-section" id="setting-notifications" data-setting-label="Notifications toasts history test">
+      <h2>Notifications</h2>
+      <div class="setting-row">
+        <div><div class="label">Test a notification</div><div class="desc">Non-blocking toast, bottom-right, with a reviewable history.</div></div>
+        <button type="button" class="btn outlined" id="test-toast">Show test notification</button>
+      </div>
+    </section>
+
+    <section class="settings-section" id="setting-tabdock" data-setting-label="Tab strip docking edge left right top bottom">
+      <h2>Tab strip</h2>
+      <p class="desc">Dock the navigation strip to any edge — the controls are at the
+      top of the strip itself. Your choice persists across visits.</p>
+    </section>
+
+    <section class="settings-section" id="setting-unavailable" data-setting-label="unavailable static site limitations">
+      <h2>What isn't available here</h2>
+      <div class="unavailable-note">
+        This is a static, self-contained site with no backend. Account sign-in, synced
+        settings across devices, and server-rendered search are not offered — everything
+        above runs entirely in your browser and resets if you clear site data. Language
+        modes and the TOTP authenticator described in the shared agent instructions apply
+        to the agent-whip application itself, not to this static documentation site, and
+        are not duplicated here.
+      </div>
+    </section>
+  </main>
+</div>
+<script>
+(function () {
+  var themeBtns = document.querySelectorAll("[data-theme-btn]");
+  function syncThemeButtons() {
+    var current = localStorage.getItem("aw.theme") || "system";
+    themeBtns.forEach(function (b) { b.setAttribute("aria-pressed", String(b.getAttribute("data-theme-btn") === current)); });
+  }
+  themeBtns.forEach(function (b) {
+    b.addEventListener("click", function () {
+      window.AW.Theme.set(b.getAttribute("data-theme-btn"));
+      syncThemeButtons();
+      window.AW.Notify.show("Theme set to " + b.getAttribute("data-theme-btn") + ".", "info");
+    });
+  });
+  syncThemeButtons();
+
+  var density = document.getElementById("density-slider");
+  density.value = localStorage.getItem("aw.density") || "1";
+  density.addEventListener("input", function () {
+    localStorage.setItem("aw.density", density.value);
+    document.documentElement.style.setProperty("--density", density.value);
+  });
+
+  document.getElementById("reset-accent").addEventListener("click", function () {
+    localStorage.removeItem("aw.accent.h");
+    localStorage.removeItem("aw.accent.s");
+    localStorage.removeItem("aw.accent.l");
+    location.reload();
+  });
+
+  document.getElementById("test-toast").addEventListener("click", function () {
+    window.AW.Notify.show("This is a test notification. It will auto-dismiss.", "info");
+  });
+
+  var settingsSections = Array.prototype.slice.call(document.querySelectorAll("[data-setting-label]"));
+  function plainFilter(q) {
+    q = q.toLowerCase();
+    if (!q) return [];
+    return settingsSections.filter(function (s) { return s.getAttribute("data-setting-label").toLowerCase().indexOf(q) !== -1; });
+  }
+  function regexFilter(pattern, flags) {
+    try {
+      var re = new RegExp(pattern, flags);
+      return settingsSections.filter(function (s) { return re.test(s.getAttribute("data-setting-label")); });
+    } catch (e) { return []; }
+  }
+  function render(list) {
+    var results = document.getElementById("settings-search-results");
+    results.innerHTML = "";
+    list.forEach(function (s) {
+      var li = document.createElement("li");
+      var a = document.createElement("a");
+      a.href = "#" + s.id;
+      a.textContent = s.querySelector("h2").textContent;
+      a.addEventListener("click", function (e) {
+        e.preventDefault();
+        s.scrollIntoView({ behavior: "smooth", block: "center" });
+        s.classList.add("palette-highlight");
+        setTimeout(function () { s.classList.remove("palette-highlight"); }, 1600);
+      });
+      li.appendChild(a); results.appendChild(li);
+    });
+  }
+  document.addEventListener("aw:search-ready", function (e) {
+    if (e.detail.id !== "settings-search") return;
+    e.detail.instance.onQueryChange = function (q, isRegex, flags) {
+      render(isRegex ? regexFilter(q, flags) : plainFilter(q));
+    };
+  });
+})();
+</script>
+
+<script>
+window.AW_SITE_INDEX = [
+  {label:"Home", kind:"page", href:"index.html", keywords:"landing download install"},
+  {label:"Why this is not an interrupt", kind:"section", href:"index.html#not-interrupt-h", keywords:"interrupt ctrl-c openwhip"},
+  {label:"Two tiers, no confirmation prompt", kind:"section", href:"index.html#tiers-h", keywords:"single double crack"},
+  {label:"Nothing leaves the machine", kind:"section", href:"index.html#privacy-h", keywords:"network telemetry"},
+  {label:"Docs hub", kind:"page", href:"docs/index.html", keywords:"documentation articles"},
+  {label:"Crack tiers", kind:"page", href:"docs/crack-tiers.html", keywords:"tier1 tier2 confirmation"},
+  {label:"Payload profiles", kind:"page", href:"docs/payload-profiles.html", keywords:"profile.json schema defaults"},
+  {label:"Delivery routes", kind:"page", href:"docs/delivery-routes.html", keywords:"pty injection codex hook targeting"},
+  {label:"Privacy", kind:"page", href:"docs/privacy.html", keywords:"network logging guards"},
+  {label:"Settings", kind:"page", href:"settings.html", keywords:"theme dark light density accent colour"},
+  {label:"Setting: Appearance (theme, density)", kind:"setting", href:"settings.html#setting-theme", keywords:"theme dark light system density"},
+  {label:"Setting: Accent colour", kind:"setting", href:"settings.html#setting-accent", keywords:"colour picker hue"},
+  {label:"Setting: Notifications", kind:"setting", href:"settings.html#setting-notifications", keywords:"toast test"},
+  {label:"Setting: Tab strip docking", kind:"setting", href:"settings.html#setting-tabdock", keywords:"dock left right top bottom"}
+];
+</script>
+<script src="js/app.js"></script>
+</body>
+</html>

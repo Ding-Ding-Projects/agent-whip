@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy — agent-whip</title>
+<meta name="description" content="No network access, no payload logging, and the build-time guards that keep both true.">
+<link rel="stylesheet" href="../css/app.css">
+</head>
+<body>
+<div class="app-shell" data-dock="left">
+  <nav class="tab-strip" role="tablist" aria-label="Site navigation" aria-orientation="vertical">
+    <div class="tab-strip__brand"><span class="whip">agent-whip</span></div>
+    <div class="tab-strip__dock-controls" role="group" aria-label="Dock tab strip to edge">
+      <button type="button" class="icon-btn" data-dock-btn="left" title="Dock left" aria-label="Dock tab strip left">L</button>
+      <button type="button" class="icon-btn" data-dock-btn="top" title="Dock top" aria-label="Dock tab strip top">T</button>
+      <button type="button" class="icon-btn" data-dock-btn="right" title="Dock right" aria-label="Dock tab strip right">R</button>
+      <button type="button" class="icon-btn" data-dock-btn="bottom" title="Dock bottom" aria-label="Dock tab strip bottom">B</button>
+    </div>
+    <a class="tab" role="tab" aria-selected="false" href="../index.html"><span class="tab__icon" aria-hidden="true">H</span><span class="tab__label">Home</span></a>
+    <a class="tab" role="tab" aria-selected="false" href="../docs/index.html"><span class="tab__icon" aria-hidden="true">D</span><span class="tab__label">Docs</span></a>
+    <a class="tab" role="tab" aria-selected="false" href="../docs/crack-tiers.html"><span class="tab__icon" aria-hidden="true">1</span><span class="tab__label">Crack tiers</span></a>
+    <a class="tab" role="tab" aria-selected="false" href="../docs/payload-profiles.html"><span class="tab__icon" aria-hidden="true">2</span><span class="tab__label">Payload profiles</span></a>
+    <a class="tab" role="tab" aria-selected="false" href="../docs/delivery-routes.html"><span class="tab__icon" aria-hidden="true">3</span><span class="tab__label">Delivery routes</span></a>
+    <a class="tab" role="tab" aria-selected="true" href="../docs/privacy.html"><span class="tab__icon" aria-hidden="true">4</span><span class="tab__label">Privacy</span></a>
+    <a class="tab" role="tab" aria-selected="false" href="../settings.html"><span class="tab__icon" aria-hidden="true">S</span><span class="tab__label">Settings</span></a>
+  </nav>
+  <main id="main-content">
+    <span class="eyebrow">Documentation</span>
+    <h1>Privacy</h1>
+    <p>agent-whip's whole reason for existing — poking a running session to switch modes
+    — only works if it's trustworthy to run against a real, live agent session. That
+    trust rests on a short, absolute list.</p>
+
+    <section id="no-network">
+      <h2>No network access</h2>
+      <p><code>packages/core</code> and <code>packages/cli</code> are enforced
+      network-free by <code>scripts/check-no-network.mjs</code>, which fails the build
+      on any of:</p>
+      <ul>
+        <li><code>fetch(...)</code></li>
+        <li>an import or <code>require</code> of <code>node:http</code>, <code>node:https</code>, <code>node:net</code>, <code>node:dgram</code>, or their bare equivalents</li>
+        <li>an import or <code>require</code> of <code>axios</code></li>
+        <li><code>new XMLHttpRequest(...)</code></li>
+      </ul>
+      <p>There is no analytics, no crash reporting, no update-check ping, and no
+      telemetry of any kind. Every crack agent-whip delivers happens entirely on the
+      machine it's running on, against a session on that same machine.</p>
+    </section>
+
+    <section id="no-payload-logging">
+      <h2>No payload text in logs</h2>
+      <p>The append-only crack log (see <a href="crack-tiers.html">Crack tiers</a>)
+      records timestamp, tier, delivery route, and outcome — <strong>never</strong> the
+      resolved <code>tier1</code>/<code>tier2</code> text itself.</p>
+      <p><code>scripts/check-no-payload-logging.mjs</code> enforces this at the source
+      level: it fails the build if any <code>console.*</code> call anywhere in
+      <code>packages/</code> interpolates a <code>.tier1</code> or <code>.tier2</code>
+      field. This is checked at build time, not just documented.</p>
+    </section>
+
+    <section id="local-only-profile">
+      <h2>The profile file is local-only</h2>
+      <p>Real trigger phrases live in <code>~/.agent-whip/profile.json</code> — outside
+      this repository, outside version control, never referenced from a committed
+      fixture or test. <code>.gitignore</code> refuses <code>profile.json</code> and
+      <code>*.profile.json</code> by name, and <code>scripts/check-public-hygiene.mjs</code>
+      fails the build if either pattern is ever a <strong>tracked</strong> file.</p>
+      <p>See <a href="payload-profiles.html">Payload profiles</a> for exactly how this
+      file is loaded, validated, and falls back to defaults.</p>
+    </section>
+
+    <section id="no-raw-control-bytes">
+      <h2>No raw control bytes outside the sanitizer</h2>
+      <p><code>scripts/check-public-hygiene.mjs</code> also fails the build if a raw ESC
+      (<code>\x1b</code>) or C1 control byte (<code>\u0080</code>–<code>\u009f</code>)
+      shows up in source anywhere outside <code>packages/paste-frame/</code> — the one
+      package whose whole job is detecting and stripping such bytes from a pasted
+      stream.</p>
+    </section>
+
+    <section id="what-this-means">
+      <h2>What this means in practice</h2>
+      <p>If you're deciding whether to trust agent-whip enough to run it against a real
+      coding session: everything it does is visible in the repository, none of it phones
+      home, and the guard scripts above are exactly what stand between "we said so" and
+      "the build fails if it stops being true." Run <code>npm run check</code> yourself
+      if you want to verify it rather than take the docs' word for it.</p>
+    </section>
+
+    <section aria-labelledby="suggested-h">
+      <h2 id="suggested-h">Suggested articles</h2>
+      <ul class="suggested-list">
+        <li><a href="crack-tiers.html">Crack tiers — what the crack log records and why there's no confirmation prompt</a></li>
+        <li><a href="payload-profiles.html">Payload profiles — the profile-loading mechanism this page assumes</a></li>
+        <li><a href="delivery-routes.html">Delivery routes — why every route stays local by construction</a></li>
+      </ul>
+    </section>
+  </main>
+</div>
+<script>
+window.AW_SITE_INDEX = [
+  {label:"Home", kind:"page", href:"../index.html", keywords:"landing download install"},
+  {label:"Why this is not an interrupt", kind:"section", href:"../index.html#not-interrupt-h", keywords:"interrupt ctrl-c openwhip"},
+  {label:"Two tiers, no confirmation prompt", kind:"section", href:"../index.html#tiers-h", keywords:"single double crack"},
+  {label:"Nothing leaves the machine", kind:"section", href:"../index.html#privacy-h", keywords:"network telemetry"},
+  {label:"Docs hub", kind:"page", href:"../docs/index.html", keywords:"documentation articles"},
+  {label:"Crack tiers", kind:"page", href:"../docs/crack-tiers.html", keywords:"tier1 tier2 confirmation"},
+  {label:"Payload profiles", kind:"page", href:"../docs/payload-profiles.html", keywords:"profile.json schema defaults"},
+  {label:"Delivery routes", kind:"page", href:"../docs/delivery-routes.html", keywords:"pty injection codex hook targeting"},
+  {label:"Privacy", kind:"page", href:"../docs/privacy.html", keywords:"network logging guards"},
+  {label:"Settings", kind:"page", href:"../settings.html", keywords:"theme dark light density accent colour"},
+  {label:"Setting: Appearance (theme, density)", kind:"setting", href:"../settings.html#setting-theme", keywords:"theme dark light system density"},
+  {label:"Setting: Accent colour", kind:"setting", href:"../settings.html#setting-accent", keywords:"colour picker hue"},
+  {label:"Setting: Notifications", kind:"setting", href:"../settings.html#setting-notifications", keywords:"toast test"},
+  {label:"Setting: Tab strip docking", kind:"setting", href:"../settings.html#setting-tabdock", keywords:"dock left right top bottom"}
+];
+</script>
+<script src="../js/app.js"></script>
+</body>
+</html>

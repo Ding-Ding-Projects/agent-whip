@@ -77,19 +77,63 @@ jobs:
 
       # Permanent house policy: code signing is never performed here. Every
       # installer this workflow produces is, and will always be, unsigned.
-      - name: Package (unsigned)
-        run: npm run package --if-present
+      # This is the same packaging path build-installer.bat uses locally:
+      # electron-builder with the Squirrel.Windows target from the committed
+      # electron-builder.yml. It writes under dist/installer/squirrel-windows
+      # (directories.output: dist/installer, plus the squirrel subfolder),
+      # NOT the dist/ root, which is raw compiled JS/HTML/CSS and not
+      # installable by anyone.
+      - name: Package unsigned Squirrel.Windows installer
+        run: npx electron-builder --win squirrel --config electron-builder.yml
 
-      - name: Collect build output
+      - name: Verify a real Setup.exe was produced
+        shell: bash
+        run: |
+          set -u
+          setup_dir="dist/installer/squirrel-windows"
+          shopt -s nullglob
+          setups=("${setup_dir}"/*Setup*.exe)
+          if [ ${#setups[@]} -eq 0 ]; then
+            echo "No *Setup*.exe found under ${setup_dir} -- electron-builder did not" >&2
+            echo "produce an installer. Refusing to continue; publishing whatever" >&2
+            echo "happens to be lying around in dist/ is worse than failing here." >&2
+            ls -la "${setup_dir}" 2>&1 >&2 || true
+            exit 1
+          fi
+          size=$(stat -c%s "${setups[0]}" 2>/dev/null || stat -f%z "${setups[0]}")
+          if [ "${size}" -lt 1000000 ]; then
+            echo "${setups[0]} is only ${size} bytes -- too small to be a real" >&2
+            echo "Electron installer." >&2
+            exit 1
+          fi
+          echo "Verified installer: ${setups[0]} (${size} bytes)"
+
+      - name: Generate SHA256SUMS.txt
+        working-directory: dist/installer/squirrel-windows
+        shell: bash
+        run: |
+          set -u
+          shopt -s nullglob
+          files=(*Setup*.exe RELEASES *.nupkg)
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "No installer artifacts found to hash." >&2
+            exit 1
+          fi
+          sha256sum "${files[@]}" > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+
+      - name: Collect installer artifacts only
         if: ${{ always() }}
         continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: release-assets-${{ needs.prepare.outputs.tag }}
           path: |
-            release/**
-            dist/**
-          if-no-files-found: warn
+            dist/installer/squirrel-windows/*Setup*.exe
+            dist/installer/squirrel-windows/RELEASES
+            dist/installer/squirrel-windows/*.nupkg
+            dist/installer/squirrel-windows/SHA256SUMS.txt
+          if-no-files-found: error
           retention-days: 90
 
   publish:
@@ -161,18 +205,20 @@ jobs:
           candidates=(release-out/**/*)
 
           # gh release create names each asset by its basename, so two files
-          # sharing a name in different subdirectories (two "index.js", say)
-          # collide with an HTTP 422 on upload. Stage a flat directory of
-          # uniquely-named copies instead of uploading straight from the
-          # nested tree.
+          # sharing a name in different subdirectories collide with an HTTP
+          # 422 on upload. Stage a flat directory of uniquely-named copies.
           stage_dir=$(mktemp -d)
           asset_count=0
+          setup_found=0
           for f in "${candidates[@]}"; do
             if [ -f "$f" ]; then
               rel="${f#release-out/}"
               flat_name=$(printf '%s' "${rel}" | tr '/' '__')
               cp "$f" "${stage_dir}/${flat_name}"
               asset_count=$((asset_count + 1))
+              case "${flat_name}" in
+                *Setup*.exe) setup_found=1 ;;
+              esac
             fi
           done
 
@@ -181,6 +227,14 @@ jobs:
             echo "publish an assetless release. This is a build/packaging problem," >&2
             echo "not something to paper over by shipping a release with nothing" >&2
             echo "attached." >&2
+            exit 1
+          fi
+
+          if [ "${setup_found}" -ne 1 ]; then
+            echo "No *Setup*.exe among the collected assets -- refusing to publish" >&2
+            echo "a release with no installer in it. A release without an installer" >&2
+            echo "looks shipped and is not; that is worse than a failed run." >&2
+            ls -la "${stage_dir}" >&2
             exit 1
           fi
 

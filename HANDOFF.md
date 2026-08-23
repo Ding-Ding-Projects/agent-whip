@@ -12,7 +12,8 @@ not what was asserted.
 - **Type-checking**: `npx tsc -b packages/paste-frame packages/core
   packages/delivery packages/cli` exits 0.
 - **Workspace package tests**: `node --test packages/*/dist/**/*.test.js` —
-  **128 tests, 128 pass, 0 fail**.
+  **152 tests, 152 pass, 0 fail** — 128 in `packages/*`, 7 GUI main, 5 GUI renderer,
+  9 skills, 3 skills-installer.
 - **`src/main` tests**: `node --test --experimental-strip-types
   src/main/*.test.ts` currently **fails to run** (`redact.test.ts` and
   `settings-store.test.ts`, 2 test files / a further several `test()` blocks
@@ -35,7 +36,8 @@ not what was asserted.
   `check-reserved-terms` (114 files scanned, 54 digests enforced),
   `check-documented-commands` (2 documented commands, all parse).
 
-Do not repeat the earlier "147 tests" figure without re-deriving it: 128 is
+Re-derived after both earlier figures were wrong. "128" counted only `packages/*`;
+"147" missed the renderer suite. The correct total is 152, and it is
 the actual number of tests this pass could run to a real pass/fail verdict.
 The `src/main` suite is real and not fake-empty (it visibly attempts to run
 and throws), so its tests are neither passing nor failing yet — they are
@@ -129,3 +131,26 @@ unrunnable in their current form.
    `raw.githubusercontent.com` URL for a repo (`Ding-Ding-Projects/agent-whip`) that
    may not match this project's real GitHub org/name — confirm and correct
    the URL before the first real release.
+
+## Release status (updated after packaging landed)
+
+**v0.1.0 is published.** The two lines above stating that no release exists were
+true when written and are now superseded; they are left in place rather than
+rewritten so the sequence of what was known when stays readable.
+
+- Tag `v0.1.0`, non-draft, target `main`.
+- <https://github.com/Ding-Ding-Projects/agent-whip/releases/tag/v0.1.0>
+- Assets: `agent-whip-Setup-0.1.0.exe` (147,575,808 bytes), `agent-whip-0.1.0-full.nupkg`,
+  `RELEASES`, `SHA256SUMS.txt`, and the dim-sum photo `hk-dish-0001-classic-har-gow.png`.
+- Code name: **Classic Har Gow · 蝦餃** (`hk-dish-0001`), resolved from the public catalog.
+- Setup SHA-256 `8C00FD3FC7C2A93D4CE1168163A4A92A3455700557FCCCBB6AE5953A1487307F`,
+  verified against the built file and published in `SHA256SUMS.txt`.
+- Verified downloadable unauthenticated; the first 2 MB carries a valid `MZ` header.
+- `Get-AuthenticodeSignature` → `NotSigned`, as policy requires.
+
+**It was built and published by hand, not by CI.** `release.yml` exists and has never
+run. Do not read the release's existence as evidence the workflow works.
+
+**Discussion pinning is not available through the API.** `pinDiscussion` does not exist
+on the GraphQL `Mutation` type, so the changelog Announcement (Discussion #2) is
+unpinned. Pin it by hand if it matters.

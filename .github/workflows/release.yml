@@ -1,10 +1,19 @@
 name: Release
 
+# A release fires on a pushed v* tag, or by hand. It deliberately does NOT fire on every
+# push: that minted a new "Latest" for workflow-only commits — three appeared inside half an
+# hour, each a ~147 MB Windows build — so "there is a new Latest" stopped meaning "somebody
+# cut a release", which is the one thing a Releases page is meant to tell a visitor.
 on:
   push:
-    branches:
-      - '**'
+    tags:
+      - 'v*'
   workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag to publish (leave blank to derive one from package.json and the run number)"
+        required: false
+        type: string
 
 permissions:
   contents: write
@@ -36,9 +45,18 @@ jobs:
         shell: bash
         run: |
           base_version=$(node -p "require('./package.json').version" 2>/dev/null || echo "0.1.0")
-          short_sha=$(git rev-parse --short HEAD)
-          run_number="${{ github.run_number }}"
-          tag="v${base_version}-${run_number}-${short_sha}"
+          # A tag push is the normal path: publish exactly the tag that was pushed, so the
+          # release and the tag a human created cannot disagree. A manual dispatch may name a
+          # tag; if it does not, derive a unique one so a dispatch can never collide.
+          if [ "${{ github.ref_type }}" = "tag" ]; then
+            tag="${{ github.ref_name }}"
+          elif [ -n "${{ github.event.inputs.tag }}" ]; then
+            tag="${{ github.event.inputs.tag }}"
+          else
+            short_sha=$(git rev-parse --short HEAD)
+            tag="v${base_version}-${{ github.run_number }}-${short_sha}"
+          fi
+          echo "Publishing tag: ${tag}"
           echo "version=${base_version}" >> "$GITHUB_OUTPUT"
           echo "tag=${tag}" >> "$GITHUB_OUTPUT"
 

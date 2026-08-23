@@ -20,6 +20,7 @@ jobs:
       started_at: ${{ steps.timing.outputs.started_at }}
       version: ${{ steps.version.outputs.version }}
       tag: ${{ steps.version.outputs.tag }}
+      tag_exists: ${{ steps.tagcheck.outputs.exists }}
     steps:
       - name: Record start time
         id: timing
@@ -41,8 +42,24 @@ jobs:
           echo "version=${base_version}" >> "$GITHUB_OUTPUT"
           echo "tag=${tag}" >> "$GITHUB_OUTPUT"
 
+      - name: Check whether this tag already has a release
+        id: tagcheck
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN || secrets.ORG_TOKEN || secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          version="$(node -p "require('./package.json').version" 2>/dev/null || echo "0.1.0")"
+          tag="v${version}-${{ github.run_number }}-$(git rev-parse --short HEAD)"
+          if gh release view "${tag}" >/dev/null 2>&1; then
+            echo "A release for tag ${tag} already exists — nothing to publish." >&2
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
   build:
     needs: prepare
+    if: ${{ needs.prepare.outputs.tag_exists != 'true' }}
     runs-on: windows-2022
     steps:
       - uses: actions/checkout@v4
@@ -77,6 +94,7 @@ jobs:
 
   publish:
     needs: [prepare, build]
+    if: ${{ needs.prepare.outputs.tag_exists != 'true' }}
     runs-on: windows-2022
     steps:
       - uses: actions/checkout@v4
@@ -105,7 +123,14 @@ jobs:
           GH_TOKEN: ${{ secrets.RELEASE_TOKEN || secrets.ORG_TOKEN || secrets.GITHUB_TOKEN }}
         shell: bash
         run: |
+          set -u
           tag="${{ needs.prepare.outputs.tag }}"
+
+          if gh release view "${tag}" >/dev/null 2>&1; then
+            echo "A release for ${tag} already exists (published concurrently or by hand) — skipping publish, not failing." >&2
+            exit 0
+          fi
+
           notes_file=$(mktemp)
           {
             echo "## agent-whip ${tag}"
@@ -123,18 +148,33 @@ jobs:
             echo "- Commit: ${{ github.sha }}"
             echo
             echo "Checks run: build, typecheck, guard scripts (check:no-network,"
-            echo "check:no-payload-logging, check:public-hygiene). Test suite results"
-            echo "are reported in CI but do not gate this release (see ci.yml)."
+            echo "check:no-payload-logging, check:public-hygiene,"
+            echo "check:reserved-terms, check:documented-commands). Test suite"
+            echo "results are reported in CI but do not gate this release (see"
+            echo "ci.yml)."
           } > "${notes_file}"
-          shopt -s nullglob
-          assets=(release-out/**/*)
+
+          # Collect only real files -- globstar (**) needs `shopt -s globstar`
+          # to recurse at all, and even then a glob happily matches
+          # directories, which `gh release create` cannot upload as an asset.
+          shopt -s globstar nullglob
+          candidates=(release-out/**/*)
+          assets=()
+          for f in "${candidates[@]}"; do
+            if [ -f "$f" ]; then
+              assets+=("$f")
+            fi
+          done
+
           if [ ${#assets[@]} -eq 0 ]; then
-            gh release create "${tag}" \
-              --title "agent-whip ${tag}" \
-              --notes-file "${notes_file}"
-          else
-            gh release create "${tag}" \
-              --title "agent-whip ${tag}" \
-              --notes-file "${notes_file}" \
-              "${assets[@]}"
+            echo "No built release files found under release-out/ -- refusing to" >&2
+            echo "publish an assetless release. This is a build/packaging problem," >&2
+            echo "not something to paper over by shipping a release with nothing" >&2
+            echo "attached." >&2
+            exit 1
           fi
+
+          gh release create "${tag}" \
+            --title "agent-whip ${tag}" \
+            --notes-file "${notes_file}" \
+            "${assets[@]}"

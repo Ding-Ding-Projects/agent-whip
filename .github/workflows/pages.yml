@@ -28,22 +28,38 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Check for site workspace
+        id: sitecheck
+        shell: bash
+        run: |
+          if [ -d "site" ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "No site/ directory in this checkout yet — nothing for Pages to build. Skipping the site build step." >&2
+            echo "present=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - uses: actions/setup-node@v4
+        if: ${{ steps.sitecheck.outputs.present == 'true' }}
         with:
           node-version: '22'
           cache: 'npm'
 
       - name: Install dependencies
+        if: ${{ steps.sitecheck.outputs.present == 'true' }}
         run: npm ci --no-audit --no-fund
 
       - name: Build site
+        if: ${{ steps.sitecheck.outputs.present == 'true' }}
         run: npm run build --workspace site --if-present
 
       - name: Check site output exists
         id: check
         shell: bash
         run: |
-          if [ -d "site/dist" ]; then
+          if [ "${{ steps.sitecheck.outputs.present }}" != "true" ]; then
+            echo "has_output=false" >> "$GITHUB_OUTPUT"
+          elif [ -d "site/dist" ]; then
             echo "output_dir=site/dist" >> "$GITHUB_ENV"
             echo "has_output=true" >> "$GITHUB_OUTPUT"
           elif [ -d "site/out" ]; then

@@ -25,7 +25,8 @@
     "check:reserved-terms": "node scripts/check-reserved-terms.mjs",
     "reserved:lock": "node scripts/make-reserved-lock.mjs",
     "dist:win": "electron-builder --win squirrel --config electron-builder.yml",
-    "check:documented-commands": "node scripts/check-documented-commands.mjs"
+    "check:documented-commands": "node scripts/check-documented-commands.mjs",
+    "count-lines": "node scripts/count-lines.mjs"
   },
   "dependencies": {
     "@agent-whip/core": "0.1.0",

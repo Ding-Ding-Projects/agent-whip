@@ -1,0 +1,14 @@
+interface:
+  display_name: Agent Whip
+  short_description: Crack a whip at a running agent session to switch its speed, no interrupt
+  default_prompt: "Use agent-whip to register, list, or crack a running agent session via the agent-whip CLI."
+
+policy:
+  # Cracking a session changes its operating mode and, at tier 2, hands it a cleanup/branch
+  # authorization. That is a deliberate human action taken on purpose against a specific target
+  # session. It must never be something an agent decides to do on its own initiative, and it must
+  # never be something one session triggers automatically on a sibling session — there is no
+  # confirmation prompt at the CLI layer (see references/safety.md for why that is safe), so the
+  # human decision to invoke this skill at all is the only gate that exists. Implicit invocation
+  # would remove that gate.
+  allow_implicit_invocation: false

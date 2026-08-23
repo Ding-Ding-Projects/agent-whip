@@ -1,0 +1,13 @@
+{
+  "name": "@agent-whip/cli",
+  "version": "0.1.0",
+  "description": "Command-line entry point for agent-whip: crack a whip at a running agent session.",
+  "license": "MIT",
+  "type": "module",
+  "bin": { "agent-whip": "dist/bin.js" },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc -b",
+    "test": "node --test --experimental-strip-types src/*.test.ts"
+  }
+}

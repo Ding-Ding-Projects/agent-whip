@@ -1,5 +1,21 @@
 # Roadmap
 
+## Current closeout status: 2026-09-18
+
+- [x] Inventory and fetch the primary checkout before review
+- [x] Confirm `main` matches `origin/main` at
+      `e80b9fff97bdbffdc3c2781610f27147c393775c`
+- [x] Confirm there are no uncommitted files, unmerged index entries, conflict
+      markers, extra local branches, or stashes
+- [x] Create and fully test the required external archive before cleanup
+- [x] Review cleanup candidates and retain the active primary checkout and
+      `main`; no redundant checkout, branch, or stash was safe to remove
+- [x] Refresh `HANDOFF.md` with the closeout evidence and remaining ownership
+
+No release work was run during this closeout. The historical milestone records
+below remain as an audit trail, including entries that were superseded by later
+status refreshes.
+
 A real checklist. An item is ticked only once it has been implemented and
 verified by actually running it — see the project's completeness rules.
 Verified baseline as of this pass: **147 tests pass** (128 across the

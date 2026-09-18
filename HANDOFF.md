@@ -1,5 +1,23 @@
 # Handoff
 
+## 2026-09-18: primary checkout closeout
+
+The primary checkout was inventoried and fetched before review. It is on
+`main` at `e80b9fff97bdbffdc3c2781610f27147c393775c`, matching `origin/main`.
+The repository has one checkout, no additional local branches, no stashes, no
+unmerged index entries, and no conflict markers. The remote has only
+`origin/main`, plus tags `v0.1.0` and `v0.1.1`. The open issue list was empty.
+
+No recoverable uncommitted work existed, so no preservation commit was needed.
+The required external archive was created and fully tested before the cleanup
+review. It contains the Git administrative directory and the Git-selected
+tracked or untracked files. No redundant checkout, branch, or stash met the
+removal criteria, so Mat Day removed nothing. The active `main` checkout and
+its remote ref were retained.
+
+The current closeout records the repository as ready for the next owner. No
+release work was run as part of this closeout.
+
 ## 2026-08-22 — paste-frame vendored into material-nodeterm + drift guard
 
 `packages/paste-frame` is duplicated (not depended on) by `material-nodeterm/src/core/paste-injection.ts`, because material-nodeterm is public and this package is unpublished — a `file:` dependency across that boundary installs green and dangles at runtime for anyone cloning material-nodeterm alone. `scripts/check-paste-frame-parity.mjs` is now the sixth guard in `npm run check` (`check:paste-frame-parity`); it fails when the two implementations drift and skips cleanly when the sibling repo is absent. Details in `packages/paste-frame/README.md`. This is a mitigation, not the fix — publish the package once registry rights exist and delete both the vendored copy and both guard scripts.
